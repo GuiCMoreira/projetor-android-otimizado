@@ -2,6 +2,7 @@ package br.gui.inicio.ui
 
 import android.content.Context
 import android.graphics.Color
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
@@ -27,8 +28,16 @@ class ControlCenterPanel(ctx: Context, items: List<SystemShortcut>, onPick: (Sys
             background = Theme.oval(idle)
             addView(glyph, FrameLayout.LayoutParams(Theme.si(30f), Theme.si(30f), Gravity.CENTER))
         }
-        val title = Theme.text(ctx, 20f, 500, s.title)
-        val subtitle = Theme.text(ctx, 15f, 400, s.subtitle).apply { alpha = 0.7f }
+        // Uma linha só: se um texto passar da largura, termina em "…" em vez de quebrar e ser cortado.
+        val title = Theme.text(ctx, 20f, 500, s.title).apply {
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+        }
+        val subtitle = Theme.text(ctx, 15f, 400, s.subtitle).apply {
+            alpha = 0.7f
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+        }
         val texts = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             addView(title)
@@ -41,9 +50,10 @@ class ControlCenterPanel(ctx: Context, items: List<SystemShortcut>, onPick: (Sys
             setPadding(Theme.si(18f), Theme.si(16f), Theme.si(18f), Theme.si(16f))
             background = Theme.rounded(Theme.TILE_FILL, 22f)
             addView(circle, LinearLayout.LayoutParams(Theme.si(52f), Theme.si(52f)))
-            addView(texts, LinearLayout.LayoutParams(wrap, wrap).apply { leftMargin = Theme.si(16f) })
+            // Peso 1: a coluna de textos ocupa todo o resto do bloco (com WRAP ela media pelo subtítulo e cortava o título).
+            addView(texts, LinearLayout.LayoutParams(0, wrap, 1f).apply { leftMargin = Theme.si(16f) })
             layoutParams = GridLayout.LayoutParams().apply {
-                width = Theme.si(290f)
+                width = Theme.si(330f)
                 setMargins(Theme.si(8f), Theme.si(8f), Theme.si(8f), Theme.si(8f))
             }
             setOnFocusChangeListener { _, has ->

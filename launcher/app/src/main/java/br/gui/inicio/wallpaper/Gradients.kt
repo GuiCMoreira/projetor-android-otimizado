@@ -35,7 +35,8 @@ object Gradients {
 
     fun render(index: Int, w: Int, h: Int): Bitmap {
         val spec = SPECS[index.coerceIn(0, SPECS.lastIndex)]
-        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565)
+        // Cor cheia: em 16 bits o degradê fica com anéis visíveis. Para a tela inteira o loader pede meia resolução.
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         val base = Paint(Paint.DITHER_FLAG).apply {
             shader = LinearGradient(0f, 0f, w.toFloat(), h.toFloat(), intArrayOf(spec.from, spec.mid, spec.to), null, Shader.TileMode.CLAMP)

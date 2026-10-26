@@ -19,13 +19,17 @@ class WallpaperLoader(private val ctx: Context) {
 
     /** Nunca lança: qualquer falha (arquivo sumido, corrompido, memória) cai no degradê padrão. */
     fun load(choice: WallpaperChoice, w: Int, h: Int): Result {
-        val full = render(choice, w, h) ?: Gradients.render(0, w, h)
-        return Result(full, blur(full))
+        val full = render(choice, w, h, fullScreen = true) ?: Gradients.render(0, w / 2, h / 2)
+        return Result(full, blur(full, w, h))
     }
 
-    fun render(choice: WallpaperChoice, w: Int, h: Int): Bitmap? = try {
+    /**
+     * [fullScreen]: degradê sai em meia resolução e cor cheia (2 MB em vez de 8 MB); a tela amplia sem perda
+     * visível porque não há detalhe fino. Fotos sempre saem no tamanho pedido.
+     */
+    fun render(choice: WallpaperChoice, w: Int, h: Int, fullScreen: Boolean = false): Bitmap? = try {
         when (choice) {
-            is WallpaperChoice.Gradient -> Gradients.render(choice.index, w, h)
+            is WallpaperChoice.Gradient -> if (fullScreen) Gradients.render(choice.index, w / 2, h / 2) else Gradients.render(choice.index, w, h)
             is WallpaperChoice.Asset -> decodeCover({ ctx.assets.open("wallpapers/${choice.name}") }, w, h)
             is WallpaperChoice.UserFile -> {
                 val file = userDir()?.let { File(it, choice.name) }
@@ -53,11 +57,12 @@ class WallpaperLoader(private val ctx: Context) {
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
         val opts = BitmapFactory.Options().apply {
             inSampleSize = ImageMath.sampleSize(bounds.outWidth, bounds.outHeight, w, h)
-            inPreferredConfig = Bitmap.Config.RGB_565
+            inPreferredConfig = Bitmap.Config.ARGB_8888
         }
         val src = open().use { BitmapFactory.decodeStream(it, null, opts) } ?: return null
         val crop = ImageMath.coverCrop(src.width, src.height, w, h)
-        val out = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565)
+        // Cor cheia: em 16 bits (RGB_565) céus e degradês de fotos ficam com faixas visíveis.
+        val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         Canvas(out).drawBitmap(
             src,
             Rect(crop.left, crop.top, crop.left + crop.width, crop.top + crop.height),
@@ -68,9 +73,10 @@ class WallpaperLoader(private val ctx: Context) {
         return out
     }
 
-    private fun blur(full: Bitmap): Bitmap {
-        val sw = maxOf(1, full.width / Theme.BLUR_DOWNSCALE)
-        val sh = maxOf(1, full.height / Theme.BLUR_DOWNSCALE)
+    /** Sempre 1/8 da tela ([w] x [h]), qualquer que seja a resolução de [full]. */
+    private fun blur(full: Bitmap, w: Int, h: Int): Bitmap {
+        val sw = maxOf(1, w / Theme.BLUR_DOWNSCALE)
+        val sh = maxOf(1, h / Theme.BLUR_DOWNSCALE)
         val small = Bitmap.createScaledBitmap(full, sw, sh, true).copy(Bitmap.Config.ARGB_8888, true)
         val px = IntArray(sw * sh)
         small.getPixels(px, 0, sw, 0, 0, sw, sh)

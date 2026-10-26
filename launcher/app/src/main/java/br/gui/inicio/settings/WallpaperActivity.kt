@@ -40,16 +40,17 @@ class WallpaperActivity : Activity() {
         Backdrop.attach(this, root, prefs, io)
         val column = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         column.addView(Theme.text(this, 40f, 700, "Papel de parede"), LinearLayout.LayoutParams(wrap, wrap).apply { bottomMargin = Theme.si(30f) })
-        column.addView(section("DEGRADÊS"))
+        // Tamanhos explícitos: sem eles o LinearLayout mede a coluna pelo texto de dica e corta as fileiras.
+        column.addView(section("DEGRADÊS"), LinearLayout.LayoutParams(wrap, wrap))
         gradientRow = row()
-        column.addView(gradientRow)
+        column.addView(gradientRow, LinearLayout.LayoutParams(wrap, wrap))
         column.addView(section("FOTOS"), LinearLayout.LayoutParams(wrap, wrap).apply { topMargin = Theme.si(30f) })
         photoRow = row()
         column.addView(HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             clipToPadding = false
             addView(photoRow)
-        })
+        }, LinearLayout.LayoutParams(wrap, wrap))
         column.addView(
             Theme.text(this, 18f, 400, "Para usar uma foto sua, envie pelo computador: scripts/enviar-wallpaper.sh foto.jpg").apply { alpha = 0.7f },
             LinearLayout.LayoutParams(wrap, wrap).apply { topMargin = Theme.si(24f) },

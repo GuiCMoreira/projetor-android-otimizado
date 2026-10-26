@@ -28,11 +28,26 @@ class MenuPanel(ctx: Context, header: String?, entries: List<MenuEntry>, onPick:
         }
         entries.forEach { e ->
             if (e.separatorBefore) {
-                addView(View(ctx).apply { setBackgroundColor(0x33FFFFFF) }, LayoutParams(LayoutParams.MATCH_PARENT, maxOf(1, Theme.si(1.5f))).apply {
+                addView(Divider(ctx), LayoutParams(LayoutParams.MATCH_PARENT, maxOf(1, Theme.si(1.5f))).apply {
                     setMargins(Theme.si(8f), Theme.si(6f), Theme.si(8f), Theme.si(6f))
                 })
             }
             addView(item(ctx, e, onPick), LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+        }
+    }
+
+    /**
+     * Linha divisória sem largura própria. Uma View comum com MATCH_PARENT dentro de um painel WRAP_CONTENT
+     * mede a largura máxima disponível e estica o menu até a borda da tela.
+     */
+    private class Divider(ctx: Context) : View(ctx) {
+        init {
+            setBackgroundColor(0x33FFFFFF)
+        }
+
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            val width = if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY) MeasureSpec.getSize(widthMeasureSpec) else 0
+            setMeasuredDimension(width, MeasureSpec.getSize(heightMeasureSpec))
         }
     }
 
