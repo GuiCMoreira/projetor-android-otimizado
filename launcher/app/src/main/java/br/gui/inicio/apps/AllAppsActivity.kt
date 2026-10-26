@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
+import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -16,6 +17,7 @@ import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import br.gui.inicio.core.Guard
 import br.gui.inicio.core.NewAppsTracker
 import br.gui.inicio.data.AppEntry
 import br.gui.inicio.data.AppRepository
@@ -69,13 +71,14 @@ class AllAppsActivity : Activity() {
     override fun onStart() {
         super.onStart()
         io.execute {
-            val list = repo.launchable()
-            val installed = list.mapTo(HashSet()) { it.pkg }
-            prefs.newApps = NewAppsTracker.prune(NewAppsTracker.ensureInitialized(prefs.newApps, installed), installed)
-            runOnUiThread {
-                if (isDestroyed) return@runOnUiThread
-                apps = list
-                showPage(page.coerceIn(0, pageCount - 1), focusIndex = 0)
+            Guard.run({ Log.w(TAG, "falha ao listar os apps", it) }) {
+                val list = repo.launchable()
+                prefs.newApps = NewAppsTracker.ensureInitialized(prefs.newApps, System.currentTimeMillis())
+                runOnUiThread {
+                    if (isDestroyed) return@runOnUiThread
+                    apps = list
+                    showPage(page.coerceIn(0, pageCount - 1), focusIndex = 0)
+                }
             }
         }
     }
@@ -90,14 +93,16 @@ class AllAppsActivity : Activity() {
         val slice = apps.drop(p * PAGE).take(PAGE)
         val size = Theme.si(144f)
         io.execute {
-            val icons = slice.map { repo.iconBitmap(it, size) }
-            runOnUiThread {
-                if (isDestroyed || page != p) return@runOnUiThread
-                val state = prefs.newApps
-                grid.removeAllViews()
-                slice.forEachIndexed { i, entry -> grid.addView(cell(entry, icons[i], NewAppsTracker.isNew(state, entry.pkg))) }
-                renderDots()
-                if (slice.isNotEmpty()) grid.getChildAt(focusIndex.coerceIn(0, slice.lastIndex)).requestFocus()
+            Guard.run({ Log.w(TAG, "falha ao montar a página", it) }) {
+                val icons = slice.map { repo.iconBitmap(it, size) }
+                runOnUiThread {
+                    if (isDestroyed || page != p) return@runOnUiThread
+                    val state = prefs.newApps
+                    grid.removeAllViews()
+                    slice.forEachIndexed { i, entry -> grid.addView(cell(entry, icons[i], NewAppsTracker.isNew(state, entry.pkg, entry.installedAt))) }
+                    renderDots()
+                    if (slice.isNotEmpty()) grid.getChildAt(focusIndex.coerceIn(0, slice.lastIndex)).requestFocus()
+                }
             }
         }
     }
@@ -215,11 +220,12 @@ class AllAppsActivity : Activity() {
     }
 
     private fun open(entry: AppEntry) {
-        prefs.newApps = NewAppsTracker.markOpened(prefs.newApps, entry.pkg)
+        prefs.newApps = NewAppsTracker.markOpened(prefs.newApps, entry.pkg, System.currentTimeMillis())
         repo.launch(entry)
     }
 
     companion object {
+        private const val TAG = "Inicio"
         const val COLS = 6
         const val ROWS = 3
         const val PAGE = COLS * ROWS

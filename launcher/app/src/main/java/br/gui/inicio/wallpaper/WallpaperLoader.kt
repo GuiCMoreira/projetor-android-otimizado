@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import br.gui.inicio.core.BoxBlur
+import br.gui.inicio.core.Guard
 import br.gui.inicio.core.ImageMath
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.ui.Theme
@@ -15,12 +16,14 @@ import java.io.InputStream
 
 /** Monta o papel de parede no tamanho exato da tela e a versão desfocada usada pelo vidro. Rodar fora da thread principal. */
 class WallpaperLoader(private val ctx: Context) {
-    data class Result(val full: Bitmap, val blurred: Bitmap)
+    /** null = não foi possível montar (tela fica no fundo preto, vidro sem desfoque). */
+    data class Result(val full: Bitmap?, val blurred: Bitmap?)
 
-    /** Nunca lança: qualquer falha (arquivo sumido, corrompido, memória) cai no degradê padrão. */
+    /** Nunca lança: qualquer falha (arquivo sumido, corrompido, memória) cai no degradê padrão e, no limite, em nada. */
     fun load(choice: WallpaperChoice, w: Int, h: Int): Result {
-        val full = render(choice, w, h, fullScreen = true) ?: Gradients.render(0, w / 2, h / 2)
-        return Result(full, blur(full, w, h))
+        val full = render(choice, w, h, fullScreen = true) ?: Guard.run({ null }) { Gradients.render(0, w / 2, h / 2) }
+        val blurred = full?.let { f -> Guard.run({ null }) { blur(f, w, h) } }
+        return Result(full, blurred)
     }
 
     /**

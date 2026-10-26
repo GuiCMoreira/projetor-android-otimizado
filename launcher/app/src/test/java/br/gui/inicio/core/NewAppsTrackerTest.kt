@@ -3,40 +3,41 @@ package br.gui.inicio.core
 import br.gui.inicio.core.NewAppsTracker.ensureInitialized
 import br.gui.inicio.core.NewAppsTracker.isNew
 import br.gui.inicio.core.NewAppsTracker.markOpened
-import br.gui.inicio.core.NewAppsTracker.prune
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** Tempos em milissegundos; o launcher roda pela primeira vez em t = 1000. */
 class NewAppsTrackerTest {
-    private val base = setOf("a.yt", "b.nf")
+    private val start = ensureInitialized(NewAppsState(), now = 1000)
 
-    @Test fun nothingIsNewBeforeInitialization() = assertFalse(isNew(NewAppsState(), "x.new"))
+    @Test fun nothingIsNewBeforeInitialization() = assertFalse(isNew(NewAppsState(), "x.new", installedAt = 5000))
 
-    @Test fun firstRunMarksInstalledAsKnown() {
-        val s = ensureInitialized(NewAppsState(), base)
-        assertFalse(isNew(s, "a.yt"))
-        assertFalse(isNew(s, "b.nf"))
-    }
+    @Test fun firstRunMarksInstalledAsKnown() = assertFalse(isNew(start, "a.yt", installedAt = 500))
 
-    @Test fun ensureInitializedRunsOnlyOnce() {
-        val first = ensureInitialized(NewAppsState(), base)
-        val second = ensureInitialized(first, base + "x.new")
-        assertEquals(first, second)
-        assertTrue(isNew(second, "x.new"))
-    }
+    @Test fun ensureInitializedRunsOnlyOnce() = assertEquals(start, ensureInitialized(start, now = 9000))
 
-    @Test fun openedAppIsNoLongerNew() {
-        val s = markOpened(ensureInitialized(NewAppsState(), base), "x.new")
-        assertFalse(isNew(s, "x.new"))
-    }
+    @Test fun appInstalledAfterFirstRunIsNew() = assertTrue(isNew(start, "x.new", installedAt = 2000))
+
+    @Test fun openedAppIsNoLongerNew() =
+        assertFalse(isNew(markOpened(start, "x.new", now = 3000), "x.new", installedAt = 2000))
 
     @Test fun reinstalledAppIsNewAgain() {
-        var s = markOpened(ensureInitialized(NewAppsState(), base), "x.new")
-        s = prune(s, base)                 // x.new desinstalado
-        assertTrue(isNew(s, "x.new"))      // reinstalado: novo de novo
-        s = prune(s, base - "a.yt")        // app de fábrica desinstalado
-        assertTrue(isNew(s, "a.yt"))
+        val opened = markOpened(start, "x.new", now = 3000)
+        // Desinstalado e reinstalado sem passar pelo launcher: o Android dá uma nova data de instalação.
+        assertTrue(isNew(opened, "x.new", installedAt = 4000))
+    }
+
+    @Test fun factoryAppReinstalledIsNew() = assertTrue(isNew(start, "a.yt", installedAt = 4000))
+
+    @Test fun openedAtSurvivesSerialization() {
+        val s = markOpened(markOpened(start, "x.new", now = 3000), "y.other", now = 3500)
+        assertEquals(s, NewAppsState.fromStored(s.initialized, s.initTime, s.storedOpened()))
+    }
+
+    @Test fun garbageInStorageIsIgnored() {
+        val s = NewAppsState.fromStored(true, 1000, setOf("x.new|3000", "lixo", "y|abc", "|5"))
+        assertEquals(mapOf("x.new" to 3000L), s.opened)
     }
 }

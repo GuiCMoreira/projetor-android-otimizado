@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewOutlineProvider
@@ -13,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
+import br.gui.inicio.core.Guard
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.data.Prefs
 import br.gui.inicio.ui.Backdrop
@@ -64,14 +66,16 @@ class WallpaperActivity : Activity() {
         val tw = Theme.si(320f)
         val th = Theme.si(180f)
         io.execute {
-            val gradients = (0 until Gradients.COUNT).map { WallpaperChoice.Gradient(it) to Gradients.render(it, tw, th) }
-            val choices = loader.assetNames().map { WallpaperChoice.Asset(it) } + loader.userFiles().map { WallpaperChoice.UserFile(it) }
-            val photos = choices.mapNotNull { c -> loader.render(c, tw, th)?.let { c to it } }
-            runOnUiThread {
-                if (isDestroyed) return@runOnUiThread
-                fill(gradientRow, gradients)
-                fill(photoRow, photos)
-                focusSelected()
+            Guard.run({ Log.w("Inicio", "falha ao montar as miniaturas", it) }) {
+                val gradients = (0 until Gradients.COUNT).map { WallpaperChoice.Gradient(it) to Gradients.render(it, tw, th) }
+                val choices = loader.assetNames().map { WallpaperChoice.Asset(it) } + loader.userFiles().map { WallpaperChoice.UserFile(it) }
+                val photos = choices.mapNotNull { c -> loader.render(c, tw, th)?.let { c to it } }
+                runOnUiThread {
+                    if (isDestroyed) return@runOnUiThread
+                    fill(gradientRow, gradients)
+                    fill(photoRow, photos)
+                    focusSelected()
+                }
             }
         }
     }

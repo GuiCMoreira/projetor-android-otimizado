@@ -1,7 +1,9 @@
 package br.gui.inicio.ui
 
 import android.app.Activity
+import android.util.Log
 import android.view.View
+import br.gui.inicio.core.Guard
 import android.widget.FrameLayout
 import android.widget.ImageView
 import br.gui.inicio.data.Prefs
@@ -22,11 +24,14 @@ object Backdrop {
         }
         val m = activity.resources.displayMetrics
         io.execute {
-            val result = WallpaperLoader(activity).load(prefs.wallpaper, m.widthPixels, m.heightPixels)
-            GlassSource.blurred = result.blurred
-            activity.runOnUiThread {
-                image.setImageBitmap(result.blurred)
-                root.invalidateTree()
+            Guard.run({ Log.w("Inicio", "falha ao montar o fundo", it) }) {
+                val result = WallpaperLoader(activity).load(prefs.wallpaper, m.widthPixels, m.heightPixels)
+                GlassSource.blurred = result.blurred
+                activity.runOnUiThread {
+                    if (activity.isDestroyed) return@runOnUiThread
+                    image.setImageBitmap(result.blurred)
+                    root.invalidateTree()
+                }
             }
         }
     }

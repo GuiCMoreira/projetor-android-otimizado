@@ -16,7 +16,7 @@ Data: 26/10/2026. Versão: release `apk/Inicio-1.0.apk`. Execução: `adb shell 
 | 10 | PASS | Wi-Fi abre `WifiSettingActivity`; Bluetooth abre `BluetoothActivity` |
 | 11 | PASS | OK no YouTube abre `com.google.android.youtube.tv/...MainActivity` |
 | 12 | NÃO SE APLICA | O projetor tem 11 apps (menos de 18): não há página 2. Grade 6 x 3 e limite da linha conferidos (`qa-12`) |
-| 13 | PENDENTE (tela) | Fica para o teste na tela com o dono: reinstalar o Downloader pela Play Store. Na versão de teste o ponto azul foi conferido no Pluto TV (`crop-11`) |
+| 13 | PASS (após correção) | A revisão final mostrou que a regra antiga falhava se o app fosse reinstalado com o launcher fora da tela. Regra nova (data de instalação do Android). Teste real: Activity Launcher desinstalado e reinstalado com o Início em segundo plano ganhou o ponto (`qa-13-reinstalado`) e o ponto sumiu depois de aberto (`qa-13-aberto`). Reinstalar o Downloader pela Play Store fica como confirmação no teste na tela |
 | 14 | PASS | Menu de contexto com "Adicionar ao Dock" (`qa-14a`); Miracast entra no fim dos favoritos (`qa-14b`) |
 | 15 | PASS | 8 marcados com posições 1 a 8 (`qa-15a`); 9º mostra "Dock cheio: tire um app antes de colocar outro" (`qa-15b`) |
 | 16 | PASS | Apps desmarcados (`qa-16a`); Home volta aos 4 favoritos (`qa-16b`) |

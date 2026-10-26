@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -14,6 +15,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import br.gui.inicio.core.DockConfig
+import br.gui.inicio.core.Guard
 import br.gui.inicio.data.AppEntry
 import br.gui.inicio.data.AppRepository
 import br.gui.inicio.data.Prefs
@@ -68,13 +70,15 @@ class DockEditorActivity : Activity() {
     override fun onStart() {
         super.onStart()
         io.execute {
-            val all = repo.launchable()
-            val shown = all.filter { it.pkg != AppRepository.PLAY_STORE }
-            val icons = shown.map { repo.iconBitmap(it, Theme.si(72f)) }
-            runOnUiThread {
-                if (isDestroyed) return@runOnUiThread
-                installed = all.mapTo(HashSet()) { it.pkg }
-                build(shown, icons)
+            Guard.run({ Log.w("Inicio", "falha ao listar os apps", it) }) {
+                val all = repo.launchable()
+                val shown = all.filter { it.pkg != AppRepository.PLAY_STORE }
+                val icons = shown.map { repo.iconBitmap(it, Theme.si(72f)) }
+                runOnUiThread {
+                    if (isDestroyed) return@runOnUiThread
+                    installed = all.mapTo(HashSet()) { it.pkg }
+                    build(shown, icons)
+                }
             }
         }
     }

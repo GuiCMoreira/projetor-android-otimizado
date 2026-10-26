@@ -18,16 +18,18 @@ class Prefs(ctx: Context) {
         set(v) { sp.edit().putString(K_WALLPAPER, v.serialize()).apply() }
 
     var newApps: NewAppsState
-        get() = NewAppsState(
-            initialized = sp.getBoolean(K_INIT, false),
-            known = sp.getStringSet(K_KNOWN, emptySet())!!.toSet(),
-            opened = sp.getStringSet(K_OPENED, emptySet())!!.toSet(),
+        get() = NewAppsState.fromStored(
+            // Sem K_INIT_TIME (formato antigo) conta como primeira execução: senão tudo viraria "novo".
+            initialized = sp.getBoolean(K_INIT, false) && sp.contains(K_INIT_TIME),
+            initTime = sp.getLong(K_INIT_TIME, 0),
+            stored = sp.getStringSet(K_OPENED, emptySet())!!.toSet(),
         )
         set(v) {
             sp.edit()
                 .putBoolean(K_INIT, v.initialized)
-                .putStringSet(K_KNOWN, HashSet(v.known))
-                .putStringSet(K_OPENED, HashSet(v.opened))
+                .putLong(K_INIT_TIME, v.initTime)
+                .putStringSet(K_OPENED, HashSet(v.storedOpened()))
+                .remove(K_KNOWN_OLD)
                 .apply()
         }
 
@@ -35,7 +37,8 @@ class Prefs(ctx: Context) {
         const val K_DOCK = "dock"
         const val K_WALLPAPER = "wallpaper"
         const val K_INIT = "new_apps_initialized"
-        const val K_KNOWN = "new_apps_known"
-        const val K_OPENED = "new_apps_opened"
+        const val K_INIT_TIME = "new_apps_init_time"
+        const val K_OPENED = "new_apps_opened_at"
+        const val K_KNOWN_OLD = "new_apps_known"
     }
 }

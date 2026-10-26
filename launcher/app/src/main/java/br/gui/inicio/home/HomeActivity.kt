@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -17,6 +18,7 @@ import android.widget.TextView
 import android.widget.Toast
 import br.gui.inicio.apps.AllAppsActivity
 import br.gui.inicio.core.ClockFormat
+import br.gui.inicio.core.Guard
 import br.gui.inicio.core.NewAppsTracker
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.data.AppEntry
@@ -172,30 +174,35 @@ class HomeActivity : Activity() {
         if (choice == loadedChoice && GlassSource.blurred != null) return
         val m = resources.displayMetrics
         io.execute {
-            val result = loader.load(choice, m.widthPixels, m.heightPixels)
-            runOnUiThread {
-                if (isDestroyed) return@runOnUiThread
-                wallpaperView.setImageBitmap(result.full)
-                GlassSource.blurred = result.blurred
-                loadedChoice = choice
-                root.invalidateTree()
+            Guard.run({ Log.w(TAG, "falha ao carregar o papel de parede", it) }) {
+                val result = loader.load(choice, m.widthPixels, m.heightPixels)
+                runOnUiThread {
+                    if (isDestroyed) return@runOnUiThread
+                    wallpaperView.setImageBitmap(result.full)
+                    GlassSource.blurred = result.blurred
+                    loadedChoice = choice
+                    root.invalidateTree()
+                }
             }
         }
     }
 
     private fun refreshApps() {
         io.execute {
-            val apps = repo.launchable()
-            val installed = apps.mapTo(HashSet()) { it.pkg }
-            prefs.newApps = NewAppsTracker.prune(NewAppsTracker.ensureInitialized(prefs.newApps, installed), installed)
-            val items = buildDock(apps, installed)
-            runOnUiThread {
-                if (isDestroyed) return@runOnUiThread
-                // Na primeira carga o foco vai para o Dock, mesmo que a barra tenha pego o foco antes.
-                val hadFocus = !dockLoaded || dock.hasFocusedItem() || currentFocus == null
-                dock.setItems(items)
-                dockLoaded = true
-                if (hadFocus && !panels.isOpen) dock.focusLast()
+            // Se a montagem falhar, o Dock anterior continua na tela; a Home nunca cai.
+            Guard.run({ Log.w(TAG, "falha ao montar o Dock", it) }) {
+                val apps = repo.launchable()
+                val installed = apps.mapTo(HashSet()) { it.pkg }
+                prefs.newApps = NewAppsTracker.ensureInitialized(prefs.newApps, System.currentTimeMillis())
+                val items = buildDock(apps, installed)
+                runOnUiThread {
+                    if (isDestroyed) return@runOnUiThread
+                    // Na primeira carga o foco vai para o Dock, mesmo que a barra tenha pego o foco antes.
+                    val hadFocus = !dockLoaded || dock.hasFocusedItem() || currentFocus == null
+                    dock.setItems(items)
+                    dockLoaded = true
+                    if (hadFocus && !panels.isOpen) dock.focusLast()
+                }
             }
         }
     }
@@ -229,7 +236,7 @@ class HomeActivity : Activity() {
     }
 
     private fun openApp(e: AppEntry) {
-        prefs.newApps = NewAppsTracker.markOpened(prefs.newApps, e.pkg)
+        prefs.newApps = NewAppsTracker.markOpened(prefs.newApps, e.pkg, System.currentTimeMillis())
         if (!repo.launch(e)) Toast.makeText(this, "Não foi possível abrir ${e.label}", Toast.LENGTH_SHORT).show()
     }
 
@@ -295,6 +302,7 @@ class HomeActivity : Activity() {
     }
 
     private companion object {
+        const val TAG = "Inicio"
         const val BLUE_TOP = 0xFF3A7BFD.toInt()
         const val BLUE_BOTTOM = 0xFF1F4FD8.toInt()
         const val GRAY_TOP = 0xFF9A9CA3.toInt()
