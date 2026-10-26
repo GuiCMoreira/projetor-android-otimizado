@@ -52,6 +52,12 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
+            <!-- A tela intermediária do fabricante (com.newlink.provision/.FallbackHome) abre o launcher escolhido
+                 procurando MAIN + LAUNCHER no pacote; sem esta entrada ela volta para o launcher de fábrica. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity android:name=".apps.AllAppsActivity" android:exported="false" android:screenOrientation="landscape" />
