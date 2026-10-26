@@ -38,14 +38,15 @@ Substituir o launcher do fabricante (`com.zeasn.launcher.projector`, 87 MB, que 
 |                           20:45                              |  <- relógio grande (Inter Bold)
 |                                                              |
 |                                                              |
-|        [YT] [N] [C] [Pluto] | [Play] [HDMI] [Ajustes]        |  <- Dock (vidro)
+|   [YT] [N] [C] [Pluto] | [Play] [HDMI] [Ajustes] | [Todos]   |  <- Dock (vidro)
 +--------------------------------------------------------------+
 ```
 
 - Fundo: degradê ou foto (ver 2.4).
 - Barra de menu: "Início" à esquerda; à direita, ícone de Bluetooth (só quando ligado), estado do Wi-Fi e data/hora curtas.
 - Relógio: data por extenso em pt-BR acima, hora em 24 h, centralizados.
-- Dock: favoritos à esquerda da divisória, atalhos fixos à direita.
+- Dock: favoritos à esquerda, divisória, atalhos fixos (Play Store, HDMI, Ajustes), divisória e, por último, o ícone "Todos os apps" (ver 2.6).
+- O Dock nunca muda sozinho: app recém-instalado não entra nele automaticamente (decisão do dono, 26/10/2026).
 
 ### 2.2 Navegação pelo controle
 
@@ -87,6 +88,19 @@ Painel de vidro abaixo de "Início", com:
 - Limite de 8 favoritos, para o Dock caber na tela com folga.
 - Padrão de fábrica do Dock: YouTube, Netflix, Crunchyroll, Pluto TV.
 
+### 2.6 Todos os apps (estilo Launchpad)
+
+- Aberto pelo último ícone do Dock. Tela própria, com o papel de parede atual desfocado e escurecido (gerado uma vez ao abrir).
+- Grade com todos os apps abríveis em ordem alfabética: 6 colunas x 3 linhas (18 por página), ícone de 144 px com o nome embaixo.
+- Mais de 18 apps: páginas, com bolinhas indicadoras embaixo. ← → no limite da página passam para a próxima ou anterior.
+- **App novo:** ponto azul (#3478F6) no canto do ícone até a primeira vez que for aberto pelo launcher. "Novo" = instalado depois da primeira execução do launcher e ainda não aberto. Apps já presentes na primeira execução não ganham ponto.
+- OK abre o app. Voltar fecha a tela.
+- Botão Menu do controle, ou OK segurado (toque longo, 600 ms), abre um menu de vidro sobre o app com:
+  1. Adicionar ao Dock (ou "Remover do Dock" se já estiver; desabilitado com a mensagem "Dock cheio" se houver 8 favoritos)
+  2. Abrir
+  3. Informações do app → `Settings.ACTION_APPLICATION_DETAILS_SETTINGS` (limpar dados, desinstalar)
+- Os ícones são carregados ao abrir a tela e liberados ao fechar; a tela inicial não guarda nada disso.
+
 ## 3. Visual
 
 | Token | Valor | Uso |
@@ -120,7 +134,9 @@ Kotlin, Views nativas, `minSdk 31`, `targetSdk 34`, `compileSdk 35`. Sem depend�
 | `AppRepository` | Lista apps abríveis, resolve ícones, ignora apps desinstalados, escuta `PACKAGE_ADDED/REMOVED` | `PackageManager` |
 | `DockConfig` (lógica pura) | Ordem do Dock: adicionar, remover, mover, limite de 8, filtrar apps que sumiram | Nada (testável na JVM) |
 | `ImageMath` (lógica pura) | Cálculo de redimensionamento e recorte "cover" para 1920x1080 e fator de amostragem | Nada (testável na JVM) |
-| `Prefs` | `SharedPreferences`: ordem do Dock, papel de parede escolhido | Nada |
+| `NewAppsTracker` (lógica pura) | Decide quais apps são "novos": conjunto conhecido na primeira execução + conjunto já aberto | Nada (testável na JVM) |
+| `Prefs` | `SharedPreferences`: ordem do Dock, papel de parede escolhido, apps conhecidos e já abertos | Nada |
+| `AllAppsActivity` | Grade paginada "Todos os apps", menu de contexto, ponto azul | `AppRepository`, `DockConfig`, `NewAppsTracker`, `Prefs` |
 | `WallpaperActivity`, `DockEditorActivity` | Telas de escolha, navegáveis pelo controle | `Prefs`, `AppRepository` |
 
 Fluxo de dados: `AppRepository` → `DockConfig` (filtra e ordena) → `DockView`. A escolha do usuário vai para `Prefs`, e `HomeActivity` recarrega no `onStart`.
@@ -141,7 +157,11 @@ Manifesto:
 | Intent de Ajustes ou Fontes não resolve | Item escondido do menu e atalho escondido do Dock |
 | Launcher original desativado | Item do menu escondido |
 | Pouca memória: o Android encerra o launcher | Reabre a frio pelo botão Início (meta < 1 s) |
-| Primeira execução sem `Prefs` | Dock padrão, degradê 1 |
+| Primeira execução sem `Prefs` | Dock padrão, degradê 1; todos os apps instalados são marcados como conhecidos (sem ponto azul) |
+| App novo instalado | Aparece em "Todos os apps" com ponto azul; o Dock não muda |
+| App do Dock desinstalado e Dock com vaga | A vaga fica livre; nada entra sozinho |
+| "Adicionar ao Dock" com 8 favoritos | Item desabilitado, texto "Dock cheio" |
+| Mais de 18 apps | Paginação; nunca rolagem contínua |
 
 ## 6. Compilação
 
@@ -151,8 +171,8 @@ Manifesto:
 
 ## 7. Testes
 
-1. **JVM (unitários):** `DockConfig` (adicionar, remover, mover, limite, app sumido) e `ImageMath` (proporções 16:9, 4:3, retrato, 4K, imagem menor que a tela).
-2. **No aparelho, via ADB (roteiro escrito antes):** instalação, abertura por `am start`, navegação com `input keyevent` (DPAD_LEFT/RIGHT/UP/DOWN, DPAD_CENTER, BACK) conferida por captura de tela, abertura de cada app do Dock, menu "Início" e cada item, troca de papel de parede, envio de foto pelo script, Organizar Dock.
+1. **JVM (unitários):** `DockConfig` (adicionar, remover, mover, limite, app sumido), `NewAppsTracker` (primeira execução, app instalado depois, app aberto, app desinstalado e reinstalado) e `ImageMath` (proporções 16:9, 4:3, retrato, 4K, imagem menor que a tela).
+2. **No aparelho, via ADB (roteiro escrito antes):** instalação, abertura por `am start`, navegação com `input keyevent` (DPAD_LEFT/RIGHT/UP/DOWN, DPAD_CENTER, BACK, MENU) conferida por captura de tela, abertura de cada app do Dock, menu "Início" e cada item, troca de papel de parede, envio de foto pelo script, Organizar Dock, "Todos os apps" (paginação, ponto azul após instalar um app de teste, "Adicionar ao Dock", "Dock cheio").
 3. **Medições:** memória (PSS) e abertura a frio do launcher novo comparadas com os 87 MB do original, 3 medições cada.
 4. **Na tela, com o dono do aparelho:** visual, legibilidade a distância, controle real, seleção como launcher padrão pela tela do Android, e retorno ao launcher original.
 
