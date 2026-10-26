@@ -82,6 +82,6 @@
             android:name=".settings.CityActivity"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:windowSoftInputMode="adjustPan|stateAlwaysVisible" />
+            android:windowSoftInputMode="adjustPan|stateVisible" />
     </application>
 </manifest>

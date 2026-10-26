@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.tv.TvContract
 import android.provider.Settings
+import br.gui.inicio.core.Guard
 import br.gui.inicio.ui.Glyph
 
 /** Atalho para uma tela do sistema ou do fabricante. [intents] em ordem de preferência (o primeiro que existir). */
@@ -49,10 +50,15 @@ object Shortcuts {
 }
 
 class ShortcutResolver(private val ctx: Context) {
-    /** Primeiro intent que existe neste aparelho; null esconde o atalho. Desativado também conta como inexistente. */
+    /** Primeiro intent que existe neste aparelho; null esconde o atalho. App desativado também conta como inexistente. */
     fun intentFor(s: SystemShortcut): Intent? =
-        s.intents.firstOrNull { it.resolveActivity(ctx.packageManager) != null }
-            ?.let { Intent(it).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+        s.intents.firstOrNull { isOpenable(it) }?.let { Intent(it).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+
+    /** resolveActivity ainda devolve a tela de um app desativado quando o componente é explícito; por isso a checagem extra. */
+    private fun isOpenable(intent: Intent): Boolean {
+        val info = intent.resolveActivity(ctx.packageManager) ?: return false
+        return Guard.run({ false }) { ctx.packageManager.getApplicationInfo(info.packageName, 0).enabled }
+    }
 
     fun isAvailable(s: SystemShortcut): Boolean = intentFor(s) != null
 

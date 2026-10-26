@@ -38,7 +38,8 @@ class ControlCenterPanel(
         })
         val grid = GridLayout(ctx).apply { columnCount = 2 }
         items.forEach { grid.addView(tile(ctx, it.title, it.subtitle, it.glyph) { onPick(it) }) }
-        addView(grid)
+        // WRAP explícito: com o padrão (MATCH_PARENT) todos os filhos "esticam" e o painel ocupa a tela inteira.
+        addView(grid, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
     }
 
     private fun volumeRow(ctx: Context): View {

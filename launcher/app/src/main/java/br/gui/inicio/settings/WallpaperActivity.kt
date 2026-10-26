@@ -129,6 +129,12 @@ class WallpaperActivity : Activity() {
             }
             rotationRow.addView(pill, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { rightMargin = Theme.si(14f) })
         }
+        // ← → param nas pontas da fileira, em vez de saltar para as fotos de cima.
+        (0 until rotationRow.childCount).map { rotationRow.getChildAt(it) }.let { pills ->
+            pills.forEach { it.id = View.generateViewId() }
+            pills.firstOrNull()?.let { it.nextFocusLeftId = it.id }
+            pills.lastOrNull()?.let { it.nextFocusRightId = it.id }
+        }
         focusedIndex?.let { rotationRow.getChildAt(it).requestFocus() }
     }
 

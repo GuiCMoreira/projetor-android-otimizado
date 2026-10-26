@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -29,6 +30,7 @@ class CityActivity : Activity() {
     private lateinit var weather: WeatherRepository
     private lateinit var results: LinearLayout
     private lateinit var status: TextView
+    private lateinit var input: EditText
     private val io: ExecutorService = Executors.newSingleThreadExecutor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +49,7 @@ class CityActivity : Activity() {
             topMargin = Theme.si(10f)
             bottomMargin = Theme.si(28f)
         })
-        val input = EditText(this).apply {
+        input = EditText(this).apply {
             hint = "Digite o nome da cidade e aperte OK"
             setHintTextColor(0x99FFFFFF.toInt())
             setTextColor(Color.WHITE)
@@ -91,6 +93,8 @@ class CityActivity : Activity() {
                     results.removeAllViews()
                     status.text = if (found.isEmpty()) "Nenhuma cidade encontrada (ou sem internet)." else "Escolha a cidade:"
                     found.forEach { c -> results.addView(row(label(c), Glyph.LOCATION) { choose(c) }) }
+                    // Fecha o teclado: com ele aberto, as setas do controle vão para as teclas e não para a lista.
+                    getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(input.windowToken, 0)
                     results.getChildAt(0)?.requestFocus()
                 }
             }
