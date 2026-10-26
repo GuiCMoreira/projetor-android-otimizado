@@ -17,16 +17,16 @@ class WeatherRepository(private val prefs: Prefs) {
     /** Último clima guardado: aparece na hora, mesmo sem internet. */
     fun cached(): Weather? = prefs.weatherJson?.let { WeatherParser.forecast(it) }
 
-    fun isStale(nowMs: Long): Boolean = nowMs - prefs.weatherAt > REFRESH_MS
-
     /** Busca o clima de agora e guarda. null = sem cidade ou sem resposta (o guardado continua valendo). */
     fun refresh(): Weather? {
-        val city = prefs.weatherCity ?: detectCity()?.also { prefs.weatherCity = it } ?: return null
+        // A cidade detectada só vale se ninguém escolheu outra enquanto a consulta rodava.
+        val city = prefs.weatherCity ?: detectCity()?.let { found -> prefs.weatherCity ?: found.also { prefs.weatherCity = it } } ?: return null
         val url = "https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}" +
             "&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min" +
             "&timezone=auto&forecast_days=1"
         val json = get(url) ?: return null
         val weather = WeatherParser.forecast(json) ?: return null
+        if (prefs.weatherCity != city) return null // a cidade mudou durante a busca: não grava o clima da anterior
         prefs.weatherJson = json
         prefs.weatherAt = System.currentTimeMillis()
         return weather
@@ -60,7 +60,6 @@ class WeatherRepository(private val prefs: Prefs) {
     }
 
     companion object {
-        const val REFRESH_MS = 30 * 60_000L
         private const val TIMEOUT_MS = 8_000
     }
 }

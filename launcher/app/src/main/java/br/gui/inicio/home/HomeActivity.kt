@@ -25,7 +25,10 @@ import br.gui.inicio.core.ClockFormat
 import br.gui.inicio.core.Guard
 import br.gui.inicio.core.NewAppsTracker
 import br.gui.inicio.core.Options
+import br.gui.inicio.core.City
 import br.gui.inicio.core.Screensaver
+import br.gui.inicio.core.WakeKey
+import br.gui.inicio.core.WeatherSchedule
 import br.gui.inicio.core.WeatherCodes
 import br.gui.inicio.data.WeatherRepository
 import br.gui.inicio.settings.CityActivity
@@ -69,6 +72,8 @@ class HomeActivity : Activity() {
     private lateinit var panels: PanelHost
     private lateinit var status: StatusMonitor
     private val io: ExecutorService = Executors.newSingleThreadExecutor()
+    /** Rede do clima em fila própria: DNS sem resposta não segura o Dock nem o papel de parede. */
+    private val net: ExecutorService = Executors.newSingleThreadExecutor()
     private var loadedChoice: WallpaperChoice? = null
     private var dockLoaded = false
     private lateinit var weatherView: WeatherView
@@ -77,10 +82,12 @@ class HomeActivity : Activity() {
     private val main = Handler(Looper.getMainLooper())
     private val startScreensaver = Runnable { enterScreensaver() }
     private var weatherLoading = false
+    private var weatherAttemptMs = 0L
+    private var weatherAttemptCity: City? = null
     /** Telas abertas pelo menu "Início" devolvem o foco ao Dock na volta (e não à barra). */
     private var returnFocusToDock = false
     /** A tecla que tirou do descanso de tela é consumida inteira (descer e subir), para não abrir nada por engano. */
-    private var swallowKeyUp = false
+    private val wakeKey = WakeKey()
 
     private val timeReceiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context, i: Intent) = tick()
@@ -154,7 +161,7 @@ class HomeActivity : Activity() {
         tick()
         loadWallpaper()
         refreshApps()
-        showWeather(forceRefresh = false)
+        showWeather()
         scheduleScreensaver()
         if (returnFocusToDock) {
             returnFocusToDock = false
@@ -173,28 +180,29 @@ class HomeActivity : Activity() {
 
     override fun onDestroy() {
         io.shutdownNow()
+        net.shutdownNow()
         super.onDestroy()
     }
 
     /** Botão Início com a tela já aberta: fecha o painel e volta o foco ao Dock. */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        if (screensaver.isRunning) screensaver.stop()
+        scheduleScreensaver()
         panels.close()
         dock.focusFirst()
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (screensaver.isRunning) {
-            if (event.action == KeyEvent.ACTION_DOWN) {
+        val down = event.action == KeyEvent.ACTION_DOWN
+        when (wakeKey.handle(down, event.keyCode, event.repeatCount, screensaver.isRunning)) {
+            WakeKey.Decision.WAKE -> {
                 screensaver.stop()
-                swallowKeyUp = true
                 scheduleScreensaver()
+                return true
             }
-            return true
-        }
-        if (swallowKeyUp && event.action == KeyEvent.ACTION_UP) {
-            swallowKeyUp = false
-            return true
+            WakeKey.Decision.CONSUME -> return true // repetições e o UP da tecla que acordou
+            WakeKey.Decision.PASS -> if (screensaver.isRunning) return true
         }
         if (event.action == KeyEvent.ACTION_DOWN) scheduleScreensaver() // qualquer tecla reinicia a contagem
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
@@ -214,7 +222,7 @@ class HomeActivity : Activity() {
         menuBar.setTime(ClockFormat.menuBar(now))
         screensaver.tick(now)
         status.refresh() // Bluetooth relido a cada minuto
-        if (::weather.isInitialized && weather.isStale(System.currentTimeMillis())) showWeather(forceRefresh = true)
+        if (::weather.isInitialized) showWeather()
         // Troca automática: se a foto da vez mudou, carrega com esmaecimento.
         if (dockLoaded && loader.effective(prefs.wallpaper, prefs.rotateMinutes, System.currentTimeMillis()) != loadedChoice) loadWallpaper()
     }
@@ -228,12 +236,16 @@ class HomeActivity : Activity() {
                 val result = loader.load(choice, m.widthPixels, m.heightPixels)
                 runOnUiThread {
                     if (isDestroyed) return@runOnUiThread
-                    val old = wallpaperView.drawable
+                    val current = wallpaperView.drawable
+                    // Só a camada de cima de um esmaecimento anterior: senão cada troca guarda a foto anterior inteira.
+                    val old = (current as? TransitionDrawable)?.getDrawable(1) ?: current
                     if (old != null && result.full != null) {
-                        // Esmaece do fundo anterior para o novo (troca automática ou escolha nova).
-                        val fade = TransitionDrawable(arrayOf(old, BitmapDrawable(resources, result.full))).apply { isCrossFadeEnabled = true }
+                        // Esmaece do fundo anterior para o novo e, terminado, fica só a foto nova.
+                        val next = BitmapDrawable(resources, result.full)
+                        val fade = TransitionDrawable(arrayOf(old, next)).apply { isCrossFadeEnabled = true }
                         wallpaperView.setImageDrawable(fade)
-                        fade.startTransition(1000)
+                        fade.startTransition(FADE_MS)
+                        main.postDelayed({ if (wallpaperView.drawable === fade) wallpaperView.setImageDrawable(next) }, FADE_MS + 100L)
                     } else {
                         wallpaperView.setImageBitmap(result.full)
                     }
@@ -381,13 +393,17 @@ class HomeActivity : Activity() {
         return "${w.temp}°  ·  ${WeatherCodes.describe(w.code)}  ·  $city"
     }
 
-    /** Mostra o clima guardado na hora; se estiver velho (ou [forceRefresh]), busca de novo em segundo plano. */
-    private fun showWeather(forceRefresh: Boolean) {
+    /** Mostra o clima guardado na hora; se estiver velho, busca de novo em segundo plano (no máximo a cada 10 min). */
+    private fun showWeather() {
         val now = System.currentTimeMillis()
         weatherView.show(weather.cached(), prefs.weatherCity, prefs.weatherAt, now)
-        if (weatherLoading || !(forceRefresh || weather.isStale(now))) return
+        val city = prefs.weatherCity
+        val lastAttempt = if (city == weatherAttemptCity) weatherAttemptMs else 0L // cidade nova não espera
+        if (weatherLoading || !WeatherSchedule.shouldFetch(now, prefs.weatherAt, lastAttempt)) return
         weatherLoading = true
-        io.execute {
+        weatherAttemptMs = now
+        weatherAttemptCity = city
+        net.execute {
             Guard.run({ Log.w(TAG, "falha ao buscar o clima", it) }) { weather.refresh() }
             runOnUiThread {
                 weatherLoading = false
@@ -416,6 +432,7 @@ class HomeActivity : Activity() {
 
     private companion object {
         const val TAG = "Inicio"
+        private const val FADE_MS = 1000
         const val BLUE_TOP = 0xFF3A7BFD.toInt()
         const val BLUE_BOTTOM = 0xFF1F4FD8.toInt()
         const val GRAY_TOP = 0xFF9A9CA3.toInt()

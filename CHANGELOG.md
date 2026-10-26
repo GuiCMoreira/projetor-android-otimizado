@@ -7,6 +7,7 @@
 - Central de Controle com volume de verdade (← →) e o bloco "Timer para desligar", que abre o "Desligamento programado" do projetor.
 - Correções da revisão da 1.0: foco volta ao Dock, Bluetooth atualizado, fotos minúsculas, panoramas, EXIF, preferências corrompidas, mover no Dock, páginas de Todos os apps.
 - Nova permissão: internet (só para o clima).
+- Correções da revisão final: a troca de papel de parede não acumula mais as fotos anteriores na memória; o clima busca em fila própria (sem internet de verdade, o Dock não fica vazio) e espera 10 min depois de uma falha; segurar uma tecla para sair do descanso não move o foco; o botão Início sai do descanso; trocar de cidade durante a busca não mostra o clima da anterior.
 
 ## Início 1.0 (26/10/2026)
 - Tela inicial estilo macOS: relógio grande, barra de menu de vidro navegável, Dock de vidro com favoritos e atalhos.

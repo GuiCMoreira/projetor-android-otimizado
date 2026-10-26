@@ -25,6 +25,20 @@ Data: 26/10/2026. Versão: `apk/Inicio-1.1.apk` (release). Capturas em `launcher
 - Central de Controle ocupava a tela inteira (filho sem tamanho explícito): grade com WRAP_CONTENT.
 - Na busca de cidade, o teclado ficava aberto sobre a lista e as setas iam para ele: o teclado fecha quando os resultados chegam.
 
+## Correções da revisão final (depois do QA acima)
+| Achado | Correção | Teste |
+|---|---|---|
+| C1 troca de fundo guardava a foto anterior | Esmaecimento parte só da camada de cima e, terminado, fica só a foto nova | Aparelho: memória (abaixo) |
+| C2 clima na mesma fila do Dock | Fila de rede própria; nova tentativa no máximo a cada 10 min | `V11FixesTest` (4 casos) |
+| I1 tecla segurada vazava do descanso | A tecla que acorda é consumida até soltar | `V11FixesTest` (3 casos) + aparelho |
+| I2 Início não saía do descanso | Início para o descanso e reinicia a contagem | Aparelho |
+| I3 corrida na troca de cidade | Clima só é gravado se a cidade não mudou; cidade detectada não sobrescreve a escolhida | Revisão de código |
+
+No aparelho, com a versão corrigida (capturas `launcher/build/qa/fix-*.png`):
+- I2 PASS: após 5 min parado entrou o descanso; botão Início voltou à tela inicial com foco no YouTube (`fix-02`, `fix-03`).
+- I1 PASS: novo descanso; → segurado (`--longpress`) só acordou, o foco continuou no YouTube (`fix-04`, `fix-05`).
+- Memória depois de dois ciclos de descanso: 51 MB (PSS), sem acúmulo. Medição limpa: 69/65/64 MB, abertura 1255/1377/1547 ms, CPU parado 0,0%.
+
 ## Incidente de teste (sem efeito no aparelho)
 - Uma sequência de teclas às cegas entrou na tela de Bluetooth do sistema e abriu o menu do controle remoto `TXCZ_RCM` com "desconectar" em destaque. Nenhuma tecla foi apertada nesse menu: ele foi fechado com Voltar e o controle continuou conectado (`dumpsys bluetooth_manager`: STATE_CONNECTED). Depois disso, todo OK passou pela trava de `scripts/qa-seguro.sh`.
 
