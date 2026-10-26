@@ -31,6 +31,7 @@ done
 # 4. Remover o launcher Início (o Android volta para a tela do fabricante)
 adb -s "$DEV" uninstall br.gui.inicio || true
 
-# 5. Devolver a tela padrão ao launcher do fabricante
+# 5. Reativar o launcher do fabricante e devolver a tela padrão a ele
+$A pm enable com.zeasn.launcher.projector
 $A settings put global nl_curr_home_launcher com.zeasn.launcher.projector
 $A cmd package set-home-activity com.zeasn.launcher.projector/com.zeasn.launcher.ui.WelcomeActivity

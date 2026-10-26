@@ -33,5 +33,6 @@ Hashes SHA-256 dos APKs salvos:
 | 9 | Instalado o launcher Início 1.0 (`br.gui.inicio`) | `adb install apk/Inicio-1.0.apk` | `adb uninstall br.gui.inicio` |
 | 10 | Início como tela padrão (feito pelo ADB). Neste firmware o botão Início abre `com.newlink.provision/.FallbackHome`, que lê `settings global nl_curr_home_launcher` e abre MAIN+LAUNCHER do pacote | `cmd package set-home-activity br.gui.inicio/.home.HomeActivity` e `settings put global nl_curr_home_launcher br.gui.inicio` (o launcher do fabricante regrava essa chave quando roda, por isso foi encerrado antes com `am force-stop`) | `settings put global nl_curr_home_launcher com.zeasn.launcher.projector` e `cmd package set-home-activity com.zeasn.launcher.projector/com.zeasn.launcher.ui.WelcomeActivity` |
 | 11 | Downloader (`com.esaba.downloader`) removido por engano durante os testes | `pm uninstall --user 0 com.esaba.downloader` | reinstalar pela Play Store |
+| 12 | Launcher do fabricante desativado (foi quem instalou o adware; com ele ativo, regrava `nl_curr_home_launcher`) | `pm disable-user --user 0 com.zeasn.launcher.projector` | `pm enable com.zeasn.launcher.projector` (e os comandos da linha 10) |
 
-O launcher do fabricante continua instalado e ativo.
+O launcher do fabricante continua instalado, mas desativado. Conferido após reiniciar: a tela padrão continua sendo o Início.
