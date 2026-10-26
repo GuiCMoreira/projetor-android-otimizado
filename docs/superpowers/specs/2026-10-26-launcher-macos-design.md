@@ -44,7 +44,7 @@ Substituir o launcher do fabricante (`com.zeasn.launcher.projector`, 87 MB, que 
 
 - Fundo: degradê ou foto (ver 2.4).
 - Barra de menu: "Início" à esquerda; à direita, Bluetooth, Wi-Fi, Controle e data/hora curtas. Todos os itens são focáveis (ver 2.2):
-  - Bluetooth → `android.settings.BLUETOOTH_SETTINGS` (resolve para `com.zhiying.settings/.bluetooth.BluetoothActivity`). Ícone cheio quando ligado, contorno quando desligado.
+  - Bluetooth → `android.settings.BLUETOOTH_SETTINGS` (resolve para `com.zhiying.settings/.bluetooth.BluetoothActivity`). Ícone branco quando ligado, esmaecido (50%) quando desligado.
   - Wi-Fi → `android.settings.WIFI_SETTINGS` (resolve para `com.zhiying.settings/.network.WifiSettingActivity`, lista de redes). Mostra conectado ou desconectado; não mostra o nome da rede (exigiria permissão de localização).
   - Controle → Central de Controle (2.7).
   - Data e hora → Calendário (2.8).
