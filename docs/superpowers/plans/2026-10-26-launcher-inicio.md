@@ -22,7 +22,7 @@
 - Dock: até 8 favoritos (`DockConfig.MAX = 8`); padrão YouTube, Netflix, Crunchyroll, Pluto TV; nunca muda sozinho.
 - Todos os apps: 6 colunas x 3 linhas por página (18), ponto azul `#3478F6` em app novo.
 - Cores: seleção `#3478F6`, hoje no calendário `#FF3B30`, vidro branco 16% com borda branca 22%.
-- Idioma da interface: português do Brasil. Proibido o caractere travessão (U+2014) em código, textos, commits e docs; conferir com `grep -rn $'—'` antes de cada commit.
+- Idioma da interface: português do Brasil. Proibido o caractere travessão (U+2014) em código, textos, commits e docs; conferir com `grep -rn $'\u2014'` antes de cada commit.
 - Git: branch `feature/launcher-inicio`. Mensagem de commit no formato `LAUNCHER | TIPO | DESCRICAO` (TIPO = FEAT, TEST, FIX, DOCS, BUILD), sem linha Co-Authored-By.
 - O launcher do fabricante (`com.zeasn.launcher.projector`) NÃO é desativado neste plano. Testes no aparelho abrem o launcher novo por `am start -n`, sem torná-lo padrão. Escolher o padrão é ação do dono, na Task 16.
 - ADB do projetor: `192.168.2.100:5555`. Se `adb devices` não mostrar o aparelho, rodar `adb connect 192.168.2.100:5555`.
@@ -364,7 +364,7 @@ Expected: `BUILD SUCCESSFUL`, 11 testes passando.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher .gitignore; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher .gitignore; \
 git add .gitignore launcher && git commit -m "LAUNCHER | BUILD | Projeto Gradle e regras do Dock"
 ```
 Expected: o `grep` não imprime nada; commit criado.
@@ -549,7 +549,7 @@ Expected: `BUILD SUCCESSFUL`, 8 testes passando.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Regra do ponto azul e escolha de papel de parede"
 ```
 
@@ -700,7 +700,7 @@ Expected: `BUILD SUCCESSFUL`, 8 testes passando.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Calendário do mês e formatos de data e hora"
 ```
 
@@ -884,7 +884,7 @@ Expected: `BUILD SUCCESSFUL`, 37 testes passando (11 + 8 + 8 + 10).
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Recorte de imagem e desfoque para o vidro"
 ```
 
@@ -1065,7 +1065,7 @@ Expected: `BUILD SUCCESSFUL` (as Activities ainda não existem, mas o processame
 - [ ] **Step 7: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src docs/CREDITOS.md; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src docs/CREDITOS.md; \
 git add launcher docs/CREDITOS.md docs/LICENCA-INTER.txt && git commit -m "LAUNCHER | BUILD | Fonte Inter, fotos, ícones, tema e manifesto"
 ```
 
@@ -1459,7 +1459,7 @@ Expected: `BUILD SUCCESSFUL`. Avisos de "deprecated" no `getOpacity` são espera
 - [ ] **Step 6: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Kit visual: tema, vidro, glifos e ícones squircle"
 ```
 
@@ -1679,7 +1679,7 @@ Expected: `BUILD SUCCESSFUL`.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Preferências, lista de apps e atalhos do projetor"
 ```
 
@@ -1891,7 +1891,7 @@ Expected: `BUILD SUCCESSFUL`.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Degradês, carregamento de fotos e fundo desfocado"
 ```
 
@@ -2030,7 +2030,7 @@ Expected: `BUILD SUCCESSFUL`.
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Camada de painéis e menu de vidro"
 ```
 
@@ -2285,7 +2285,7 @@ Expected: `BUILD SUCCESSFUL`. (O teste no aparelho desta tela acontece na Task 1
 - [ ] **Step 3: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Tela Todos os apps com páginas, ponto azul e menu"
 ```
 
@@ -2475,7 +2475,7 @@ Expected: `BUILD SUCCESSFUL`.
 - [ ] **Step 3: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Tela Organizar Dock"
 ```
 
@@ -2685,7 +2685,7 @@ Expected: `BUILD SUCCESSFUL`.
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src scripts; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src scripts; \
 git add launcher scripts/enviar-wallpaper.sh && git commit -m "LAUNCHER | FEAT | Tela de papel de parede e envio de fotos pelo computador"
 ```
 
@@ -2871,7 +2871,7 @@ Expected: `BUILD SUCCESSFUL`.
 - [ ] **Step 4: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Central de Controle e calendário"
 ```
 
@@ -3566,7 +3566,7 @@ Expected: `com.zeasn.launcher.projector` em foco (o novo não é o padrão).
 - [ ] **Step 12: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' launcher/app/src; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' launcher/app/src; \
 git add launcher && git commit -m "LAUNCHER | FEAT | Tela inicial com relógio, barra de menu e Dock"
 ```
 
@@ -3646,7 +3646,7 @@ Expected (metas da especificação): no `Início`, memória < 35 MB e abertura <
 - [ ] **Step 5: Commit**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' scripts .gitignore; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' scripts .gitignore; \
 git add .gitignore scripts/medir-launcher.sh && git commit -m "LAUNCHER | BUILD | Versão final assinada e script de medição"
 ```
 
@@ -3796,7 +3796,7 @@ adb -s "$DEV" uninstall br.gui.inicio || true
 - [ ] **Step 5: Conferir travessões e commitar**
 
 ```bash
-cd ~/pessoal/projetor-bettdow && grep -rn $'—' README.md CHANGELOG.md RELATORIO-FINAL.md ALTERACOES.md docs scripts launcher/app/src; \
+cd ~/pessoal/projetor-bettdow && grep -rn $'\u2014' README.md CHANGELOG.md RELATORIO-FINAL.md ALTERACOES.md docs scripts launcher/app/src; \
 git add -A && git status --short && git commit -m "LAUNCHER | DOCS | Roteiro e resultado de QA, relatório final e instruções"
 ```
 Expected: o `grep` não imprime nada; `git status` não lista `inicio.jks`, `keystore.properties` nem `apk/`.
