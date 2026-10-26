@@ -48,16 +48,17 @@ class WallpaperActivity : Activity() {
         column.addView(gradientRow, LinearLayout.LayoutParams(wrap, wrap))
         column.addView(section("FOTOS"), LinearLayout.LayoutParams(wrap, wrap).apply { topMargin = Theme.si(30f) })
         photoRow = row()
+        // Largura da coluna (4 miniaturas); com mais fotos a fileira rola para o lado em vez de alargar a tela.
         column.addView(HorizontalScrollView(this).apply {
             isHorizontalScrollBarEnabled = false
             clipToPadding = false
             addView(photoRow)
-        }, LinearLayout.LayoutParams(wrap, wrap))
+        }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, wrap))
         column.addView(
             Theme.text(this, 18f, 400, "Para usar uma foto sua, envie pelo computador: scripts/enviar-wallpaper.sh foto.jpg").apply { alpha = 0.7f },
             LinearLayout.LayoutParams(wrap, wrap).apply { topMargin = Theme.si(24f) },
         )
-        root.addView(column, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
+        root.addView(column, FrameLayout.LayoutParams(Theme.si(COLUMN_WIDTH), FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         setContentView(root)
     }
 
@@ -142,5 +143,10 @@ class WallpaperActivity : Activity() {
         val all = (0 until gradientRow.childCount).map { gradientRow.getChildAt(it) } +
             (0 until photoRow.childCount).map { photoRow.getChildAt(it) }
         (all.firstOrNull { it.tag == current } ?: all.firstOrNull())?.requestFocus()
+    }
+
+    private companion object {
+        /** 4 miniaturas de 320 px + 24 px de espaço + 20 px de margem da fileira. */
+        const val COLUMN_WIDTH = 1420f
     }
 }
