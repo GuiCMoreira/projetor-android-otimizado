@@ -27,3 +27,6 @@ done
 # adb -s "$DEV" install "$DIR/backup/apk/com.android.media.module.services/base.apk"
 # adb -s "$DEV" install "$DIR/backup/apk/com.android.docks/base.apk"
 # $A pm disable-user --user 0 com.android.docks   # estava desativado de fábrica
+
+# 4. Remover o launcher Início (o Android volta para a tela do fabricante)
+adb -s "$DEV" uninstall br.gui.inicio || true
