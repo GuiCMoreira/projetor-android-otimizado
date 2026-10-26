@@ -1,0 +1,8 @@
+.superpowers/
+backup/apk/
+*.keystore
+*.jks
+launcher/build/
+launcher/app/build/
+launcher/.gradle/
+launcher/local.properties

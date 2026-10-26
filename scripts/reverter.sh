@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Desfaz as otimizações aplicadas em 26/10/2026 no projetor Bettdow 1073.
+# Uso: ./reverter.sh [IP:PORTA]   (padrão 192.168.2.100:5555)
+# Cada bloco é independente: dá para copiar só a parte que quiser desfazer.
+set -u
+DEV="${1:-192.168.2.100:5555}"
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+adb connect "$DEV"
+A="adb -s $DEV shell"
+
+# 1. Animações de volta ao padrão (1.0)
+$A settings put global window_animation_scale 1.0
+$A settings put global transition_animation_scale 1.0
+$A settings put global animator_duration_scale 1.0
+
+# 2. Reativar apps desativados
+for p in zeasn.open.technical.tv.store \
+         com.mobisystems.editor.office_registered \
+         com.android.inputmethod.pinyin \
+         com.android.printspooler \
+         com.uv.droid.uota \
+         com.uv.droid.uotaback; do
+  $A pm enable "$p"
+done
+
+# 3. Reinstalar os apps removidos (NÃO recomendado: são adware). Descomente se precisar.
+# adb -s "$DEV" install "$DIR/backup/apk/com.android.media.module.services/base.apk"
+# adb -s "$DEV" install "$DIR/backup/apk/com.android.docks/base.apk"
+# $A pm disable-user --user 0 com.android.docks   # estava desativado de fábrica
