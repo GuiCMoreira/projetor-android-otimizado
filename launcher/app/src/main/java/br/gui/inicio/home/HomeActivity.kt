@@ -26,15 +26,9 @@ import br.gui.inicio.core.Guard
 import br.gui.inicio.core.NewAppsTracker
 import br.gui.inicio.core.Options
 import br.gui.inicio.core.Screensaver
-import br.gui.inicio.core.SleepTimer
 import br.gui.inicio.core.WeatherCodes
-import br.gui.inicio.data.SleepTimerScheduler
 import br.gui.inicio.data.WeatherRepository
 import br.gui.inicio.settings.CityActivity
-import br.gui.inicio.ui.TimerControl
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.data.AppEntry
 import br.gui.inicio.data.AppRepository
@@ -80,7 +74,6 @@ class HomeActivity : Activity() {
     private lateinit var weatherView: WeatherView
     private lateinit var weather: WeatherRepository
     private lateinit var screensaver: ScreensaverView
-    private lateinit var sleepTimer: SleepTimerScheduler
     private val main = Handler(Looper.getMainLooper())
     private val startScreensaver = Runnable { enterScreensaver() }
     private var weatherLoading = false
@@ -132,7 +125,6 @@ class HomeActivity : Activity() {
         root.addView(screensaver, FrameLayout.LayoutParams(match, match))
         setContentView(root)
         weather = WeatherRepository(prefs)
-        sleepTimer = SleepTimerScheduler(this)
 
         status = StatusMonitor(this) { wifi, bt -> menuBar.setStatus(wifi, bt) }
         dock.onUp = { menuBar.focusFirst() }
@@ -407,15 +399,7 @@ class HomeActivity : Activity() {
     private fun openControlCenter(anchor: View) {
         val loc = IntArray(2).also { anchor.getLocationOnScreen(it) }
         val end = resources.displayMetrics.widthPixels - (loc[0] + anchor.width)
-        val timer = object : TimerControl {
-            override fun subtitle(): String {
-                val at = sleepTimer.activeAt()
-                return if (at == 0L) "Desligado" else "Desliga às ${HOUR.format(Date(at))}"
-            }
-
-            override fun cycle() = sleepTimer.set(Options.next(SleepTimer.OPTIONS, sleepTimer.activeMinutes()))
-        }
-        val panel = ControlCenterPanel(this, shortcuts.available(Shortcuts.CONTROL_CENTER), timer) { s ->
+        val panel = ControlCenterPanel(this, shortcuts.available(Shortcuts.CONTROL_CENTER)) { s ->
             panels.close()
             shortcuts.open(s)
         }
@@ -431,7 +415,6 @@ class HomeActivity : Activity() {
     }
 
     private companion object {
-        val HOUR = SimpleDateFormat("HH:mm", Locale.forLanguageTag("pt-BR"))
         const val TAG = "Inicio"
         const val BLUE_TOP = 0xFF3A7BFD.toInt()
         const val BLUE_BOTTOM = 0xFF1F4FD8.toInt()

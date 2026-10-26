@@ -50,15 +50,6 @@ class Prefs(ctx: Context) {
         get() = long(K_WEATHER_AT, 0)
         set(v) { sp.edit().putLong(K_WEATHER_AT, v).apply() }
 
-    /** Timer para desligar: opção escolhida (minutos) e instante do desligamento (0 = sem timer). */
-    var sleepMinutes: Int
-        get() = int(K_SLEEP_MIN, 0)
-        set(v) { sp.edit().putInt(K_SLEEP_MIN, v).apply() }
-
-    var sleepAt: Long
-        get() = long(K_SLEEP_AT, 0)
-        set(v) { sp.edit().putLong(K_SLEEP_AT, v).apply() }
-
     val newApps: NewAppsState
         get() = runCatching {
             NewAppsState.fromStored(
@@ -89,8 +80,6 @@ class Prefs(ctx: Context) {
         const val K_CITY = "weather_city"
         const val K_WEATHER = "weather_json"
         const val K_WEATHER_AT = "weather_at"
-        const val K_SLEEP_MIN = "sleep_minutes"
-        const val K_SLEEP_AT = "sleep_at"
         const val K_INIT = "new_apps_initialized"
         const val K_INIT_TIME = "new_apps_init_time"
         const val K_OPENED = "new_apps_opened_at"

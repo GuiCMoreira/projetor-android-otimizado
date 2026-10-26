@@ -6,7 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** Lógica pura da versão 1.1: pendências da revisão, troca de fundo, opções, timer e volume. */
+/** Lógica pura da versão 1.1: pendências da revisão, troca de fundo, opções e volume. */
 class V11LogicTest {
     // M1: recorte nunca vazio
     @Test fun tinyPhotoCropNeverEmpty() = assertEquals(CropRect(0, 0, 1, 1), ImageMath.coverCrop(1, 1, 1920, 1080))
@@ -48,11 +48,6 @@ class V11LogicTest {
         assertEquals(15, Options.next(opts, 0))
         assertEquals(0, Options.next(opts, 30))
         assertEquals(0, Options.next(opts, 7)) // valor fora da lista volta ao começo
-    }
-
-    @Test fun sleepTimerMinutesLeftRoundsUp() {
-        assertEquals(42, SleepTimer.minutesLeft(nowMs = 0, atMs = 41L * 60_000 + 1))
-        assertEquals(0, SleepTimer.minutesLeft(nowMs = 10, atMs = 5))
     }
 
     @Test fun volumeStepsStayInRange() {

@@ -17,20 +17,13 @@ import br.gui.inicio.core.Guard
 import br.gui.inicio.core.Volume
 import br.gui.inicio.data.SystemShortcut
 
-/** Bloco "Timer" da Central: o texto da vez e o que o OK faz. */
-interface TimerControl {
-    fun subtitle(): String
-    fun cycle()
-}
-
 /**
  * Central de Controle: volume de verdade no topo (← → mudam o volume de mídia) e a grade de blocos
- * que abrem as telas oficiais do projetor, mais o bloco do timer para desligar.
+ * que abrem as telas oficiais do projetor (inclusive o timer para desligar, que é o "Desligamento programado" do fabricante).
  */
 class ControlCenterPanel(
     ctx: Context,
     items: List<SystemShortcut>,
-    private val timer: TimerControl,
     onPick: (SystemShortcut) -> Unit,
 ) : LinearLayout(ctx) {
     private val audio = ctx.getSystemService(AudioManager::class.java)
@@ -44,13 +37,7 @@ class ControlCenterPanel(
             setMargins(Theme.si(8f), Theme.si(8f), Theme.si(8f), Theme.si(8f))
         })
         val grid = GridLayout(ctx).apply { columnCount = 2 }
-        items.forEach { grid.addView(tile(ctx, it.title, { it.subtitle }, it.glyph) { onPick(it) }) }
-        lateinit var timerTile: View
-        timerTile = tile(ctx, "Timer", { timer.subtitle() }, Glyph.TIMER) {
-            timer.cycle()
-            (timerTile.tag as? () -> Unit)?.invoke() // reescreve o subtítulo sem fechar a Central
-        }
-        grid.addView(timerTile)
+        items.forEach { grid.addView(tile(ctx, it.title, it.subtitle, it.glyph) { onPick(it) }) }
         addView(grid)
     }
 
@@ -99,7 +86,7 @@ class ControlCenterPanel(
         }
     }
 
-    private fun tile(ctx: Context, titleText: String, subtitleText: () -> String, glyphKind: Glyph, onClick: () -> Unit): View {
+    private fun tile(ctx: Context, titleText: String, subtitleText: String, glyphKind: Glyph, onClick: () -> Unit): View {
         val wrap = LinearLayout.LayoutParams.WRAP_CONTENT
         val idle = 0x38FFFFFF
         val glyph = GlyphView(ctx, glyphKind)
@@ -112,7 +99,7 @@ class ControlCenterPanel(
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
         }
-        val subtitle: TextView = Theme.text(ctx, 15f, 400, subtitleText()).apply {
+        val subtitle: TextView = Theme.text(ctx, 15f, 400, subtitleText).apply {
             alpha = 0.7f
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
@@ -135,7 +122,6 @@ class ControlCenterPanel(
                 width = Theme.si(330f)
                 setMargins(Theme.si(8f), Theme.si(8f), Theme.si(8f), Theme.si(8f))
             }
-            tag = { subtitle.text = subtitleText() }
             setOnFocusChangeListener { _, has ->
                 background = Theme.rounded(if (has) Color.WHITE else Theme.TILE_FILL, 22f)
                 val textColor = if (has) 0xFF111111.toInt() else Color.WHITE

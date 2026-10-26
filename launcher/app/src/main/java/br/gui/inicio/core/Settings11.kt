@@ -14,21 +14,12 @@ object Rotation {
     }
 }
 
-/** Valores que o controle percorre com OK (último volta ao primeiro). */
+/** Valores que o controle percorre com OK (último volta ao primeiro): troca de fundo e descanso de tela. */
 object Options {
     fun next(options: List<Int>, current: Int): Int {
         val i = options.indexOf(current)
         return if (i < 0) options.first() else options[(i + 1) % options.size]
     }
-}
-
-object SleepTimer {
-    /** Minutos do bloco "Timer" (0 = desligado). */
-    val OPTIONS = listOf(0, 15, 30, 60, 90, 120)
-
-    /** Minutos que faltam, arredondando para cima; 0 se já passou. */
-    fun minutesLeft(nowMs: Long, atMs: Long): Int =
-        if (atMs <= nowMs) 0 else ((atMs - nowMs + 59_999) / 60_000).toInt()
 }
 
 object Screensaver {

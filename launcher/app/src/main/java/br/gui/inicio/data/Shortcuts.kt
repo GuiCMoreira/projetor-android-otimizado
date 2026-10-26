@@ -38,12 +38,14 @@ object Shortcuts {
     val PICTURE = SystemShortcut("picture", "Modo de imagem", "Cores e brilho", Glyph.PICTURE, listOf(action("com.zhiying.PICTUREMODE")))
     val PROJECTION = SystemShortcut("projection", "Projeção", "Frontal, teto, traseira", Glyph.PROJECTION, listOf(action("android.settings.PROJECTION")))
     val SOUND = SystemShortcut("sound", "Som", "Saída e volume", Glyph.SOUND, listOf(action(Settings.ACTION_SOUND_SETTINGS)))
+    /** Timer para desligar: abre "Outros ajustes" do projetor, onde fica o "Desligamento programado" oficial. */
+    val SLEEP_TIMER = SystemShortcut("sleep", "Timer para desligar", "Desligamento programado", Glyph.TIMER, listOf(action("android.settings.OTHER_SETTINGS")))
     val ORIGINAL_LAUNCHER = SystemShortcut(
         "original", "Launcher original do fabricante", "", Glyph.GRID,
         listOf(Intent(Intent.ACTION_MAIN).setComponent(ComponentName("com.zeasn.launcher.projector", "com.zeasn.launcher.ui.MainActivity"))),
     )
 
-    val CONTROL_CENTER = listOf(AUTOFOCUS, KEYSTONE, ZOOM, PICTURE, PROJECTION, SOUND, SOURCE, SETTINGS)
+    val CONTROL_CENTER = listOf(AUTOFOCUS, KEYSTONE, ZOOM, PICTURE, PROJECTION, SOUND, SOURCE, SLEEP_TIMER, SETTINGS)
 }
 
 class ShortcutResolver(private val ctx: Context) {
