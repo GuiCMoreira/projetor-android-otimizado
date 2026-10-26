@@ -15,6 +15,7 @@ import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import br.gui.inicio.core.Guard
+import br.gui.inicio.core.Rotation
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.data.Prefs
 import br.gui.inicio.ui.Backdrop
@@ -30,6 +31,7 @@ class WallpaperActivity : Activity() {
     private lateinit var loader: WallpaperLoader
     private lateinit var gradientRow: LinearLayout
     private lateinit var photoRow: LinearLayout
+    private lateinit var rotationRow: LinearLayout
     private val io: ExecutorService = Executors.newSingleThreadExecutor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,6 +56,10 @@ class WallpaperActivity : Activity() {
             clipToPadding = false
             addView(photoRow)
         }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, wrap))
+        column.addView(section("TROCAR SOZINHO ENTRE AS FOTOS"), LinearLayout.LayoutParams(wrap, wrap).apply { topMargin = Theme.si(30f) })
+        rotationRow = row()
+        column.addView(rotationRow, LinearLayout.LayoutParams(wrap, wrap))
+        renderRotation()
         column.addView(
             Theme.text(this, 18f, 400, "Para usar uma foto sua, envie pelo computador: scripts/enviar-wallpaper.sh foto.jpg").apply { alpha = 0.7f },
             LinearLayout.LayoutParams(wrap, wrap).apply { topMargin = Theme.si(24f) },
@@ -95,6 +101,37 @@ class WallpaperActivity : Activity() {
         setPadding(Theme.si(10f), Theme.si(10f), Theme.si(10f), Theme.si(10f))
     }
 
+    /** Opções da troca automática como pílulas: a ativa fica azul, a focada fica branca. OK escolhe sem sair da tela. */
+    private fun renderRotation() {
+        val focusedIndex = (0 until rotationRow.childCount).firstOrNull { rotationRow.getChildAt(it).isFocused }
+        rotationRow.removeAllViews()
+        Rotation.OPTIONS.forEachIndexed { i, minutes ->
+            val active = prefs.rotateMinutes == minutes
+            val label = when (minutes) {
+                0 -> "Desligado"
+                60 -> "A cada 1 hora"
+                1440 -> "1 vez por dia"
+                else -> "A cada ${minutes / 60} horas"
+            }
+            val pill = Theme.text(this, 20f, 500, label).apply {
+                isFocusable = true
+                setPadding(Theme.si(22f), Theme.si(12f), Theme.si(22f), Theme.si(12f))
+                fun paint(has: Boolean) {
+                    background = Theme.rounded(if (has) Color.WHITE else if (active) Theme.SELECTION else Theme.TILE_FILL, 24f)
+                    setTextColor(if (has) 0xFF111111.toInt() else Color.WHITE)
+                }
+                paint(false)
+                setOnFocusChangeListener { _, has -> paint(has) }
+                setOnClickListener {
+                    prefs.rotateMinutes = minutes
+                    renderRotation()
+                }
+            }
+            rotationRow.addView(pill, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { rightMargin = Theme.si(14f) })
+        }
+        focusedIndex?.let { rotationRow.getChildAt(it).requestFocus() }
+    }
+
     private fun fill(target: LinearLayout, items: List<Pair<WallpaperChoice, Bitmap>>) {
         target.removeAllViews()
         items.forEach { (choice, bmp) -> target.addView(thumb(choice, bmp)) }
@@ -133,6 +170,7 @@ class WallpaperActivity : Activity() {
             }
             setOnClickListener {
                 prefs.wallpaper = choice
+                prefs.rotateMinutes = 0 // escolher um fundo específico desliga a troca automática
                 finish()
             }
         }

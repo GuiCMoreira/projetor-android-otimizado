@@ -25,8 +25,8 @@ object Backdrop {
         val m = activity.resources.displayMetrics
         io.execute {
             Guard.run({ Log.w("Inicio", "falha ao montar o fundo", it) }) {
+                // Não grava GlassSource: só a tela inicial grava o vidro, senão um fundo antigo podia sobrescrever o novo.
                 val result = WallpaperLoader(activity).load(prefs.wallpaper, m.widthPixels, m.heightPixels)
-                GlassSource.blurred = result.blurred
                 activity.runOnUiThread {
                     if (activity.isDestroyed) return@runOnUiThread
                     image.setImageBitmap(result.blurred)

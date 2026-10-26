@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 1.1: widget de clima (Open-Meteo) e detecção da cidade na primeira vez. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 1.1, timer para desligar: o receptor de desligamento do fabricante (com.zhiying.powerservice) exige uma
+         permissão chamada literalmente "TODO", que nenhum app do sistema declara. O launcher a declara e a usa. -->
+    <permission android:name="TODO" android:protectionLevel="normal" />
+    <uses-permission android:name="TODO" />
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -23,6 +30,19 @@
         <package android:name="com.android.tv.settings" />
         <package android:name="com.android.vending" />
         <package android:name="com.zeasn.launcher.projector" />
+        <package android:name="com.zhiying.powerservice" />
+        <!-- Ações usadas pelos atalhos: continuam visíveis mesmo se uma atualização mudar o pacote que as atende. -->
+        <intent><action android:name="android.settings.SETTINGS" /></intent>
+        <intent><action android:name="android.settings.SOURCE" /></intent>
+        <intent><action android:name="android.settings.WIFI_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.BLUETOOTH_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.DATE_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.SOUND_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.PROJECTION" /></intent>
+        <intent><action android:name="android.intent.action.FOUR_POINT" /></intent>
+        <intent><action android:name="android.intent.action.Scale" /></intent>
+        <intent><action android:name="com.zhiying.PICTUREMODE" /></intent>
+        <intent><action android:name="com.zhiying.AUTO_FOCUS" /></intent>
     </queries>
 
     <application
@@ -63,5 +83,12 @@
         <activity android:name=".apps.AllAppsActivity" android:exported="false" android:screenOrientation="landscape" />
         <activity android:name=".settings.DockEditorActivity" android:exported="false" android:screenOrientation="landscape" />
         <activity android:name=".settings.WallpaperActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity
+            android:name=".settings.CityActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustPan|stateAlwaysVisible" />
+
+        <receiver android:name=".data.SleepTimerReceiver" android:exported="false" />
     </application>
 </manifest>
