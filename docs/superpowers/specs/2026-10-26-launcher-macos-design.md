@@ -32,7 +32,7 @@ Substituir o launcher do fabricante (`com.zeasn.launcher.projector`, 87 MB, que 
 
 ```
 +--------------------------------------------------------------+
-| Início                                  ᛒ  Wi-Fi  seg 26 20:45 |  <- barra de menu (vidro, 56 px)
+| Início                   ᛒ  Wi-Fi  ⌘ Controle  seg 26 out 20:45 |  <- barra de menu (vidro, 56 px)
 |                                                              |
 |                  segunda-feira, 26 de outubro                |
 |                           20:45                              |  <- relógio grande (Inter Bold)
@@ -43,7 +43,11 @@ Substituir o launcher do fabricante (`com.zeasn.launcher.projector`, 87 MB, que 
 ```
 
 - Fundo: degradê ou foto (ver 2.4).
-- Barra de menu: "Início" à esquerda; à direita, ícone de Bluetooth (só quando ligado), estado do Wi-Fi e data/hora curtas.
+- Barra de menu: "Início" à esquerda; à direita, Bluetooth, Wi-Fi, Controle e data/hora curtas. Todos os itens são focáveis (ver 2.2):
+  - Bluetooth → `android.settings.BLUETOOTH_SETTINGS` (resolve para `com.zhiying.settings/.bluetooth.BluetoothActivity`). Ícone cheio quando ligado, contorno quando desligado.
+  - Wi-Fi → `android.settings.WIFI_SETTINGS` (resolve para `com.zhiying.settings/.network.WifiSettingActivity`, lista de redes). Mostra conectado ou desconectado; não mostra o nome da rede (exigiria permissão de localização).
+  - Controle → Central de Controle (2.7).
+  - Data e hora → Calendário (2.8).
 - Relógio: data por extenso em pt-BR acima, hora em 24 h, centralizados.
 - Dock: favoritos à esquerda, divisória, atalhos fixos (Play Store, HDMI, Ajustes), divisória e, por último, o ícone "Todos os apps" (ver 2.6).
 - O Dock nunca muda sozinho: app recém-instalado não entra nele automaticamente (decisão do dono, 26/10/2026).
@@ -54,9 +58,10 @@ Substituir o launcher do fabricante (`com.zeasn.launcher.projector`, 87 MB, que 
 |---|---|
 | ← → | Move o foco entre os ícones do Dock |
 | ↑ | Leva o foco para "Início" na barra de menu |
+| ← → (estando na barra) | Andam entre Início, Bluetooth, Wi-Fi, Controle e Data e hora |
 | ↓ (estando na barra) | Volta para o Dock, no último ícone focado |
-| OK | Abre o app focado / abre o menu "Início" |
-| Voltar | Fecha o menu ou tela aberta; na tela inicial não faz nada |
+| OK | Abre o app focado, o menu "Início", a tela de Wi-Fi/Bluetooth, a Central de Controle ou o Calendário |
+| Voltar | Fecha o painel, menu ou tela aberta; na tela inicial não faz nada |
 | Menu (se o controle tiver) | Abre o menu "Início" |
 
 Foco: o ícone focado cresce (escala 1,35 e sobe 16 px) com animação de 150 ms feita pela GPU, e um balão de vidro com o nome aparece acima. Focar não abre; só o OK abre (regra do tvOS, `focus-and-selection.md`). Ao abrir o launcher, o foco começa no primeiro ícone do Dock.
@@ -101,6 +106,30 @@ Painel de vidro abaixo de "Início", com:
   3. Informações do app → `Settings.ACTION_APPLICATION_DETAILS_SETTINGS` (limpar dados, desinstalar)
 - Os ícones são carregados ao abrir a tela e liberados ao fechar; a tela inicial não guarda nada disso.
 
+### 2.7 Central de Controle
+
+Painel de vidro abaixo do item "Controle", grade 2 x 4 de blocos (ícone redondo + título + subtítulo). Setas navegam, OK abre, Voltar fecha. Bloco focado fica branco com ícone azul.
+
+| Bloco | Intent (verificado no aparelho em 26/10/2026) |
+|---|---|
+| Foco automático | App `com.zhiying.autofocus`, ações `com.zhiying.AUTO_FOCUS` e similares. **A verificar na implementação** qual delas é uma Activity que dispara o foco; se nenhuma for segura de chamar, o bloco sai |
+| Keystone | `android.intent.action.FOUR_POINT` → `com.zhiying.settings/.keystone.FourPointActivity` |
+| Zoom | `android.intent.action.Scale` → `com.zhiying.settings/.keystone.ZoomActivity` |
+| Modo de imagem | `com.zhiying.PICTUREMODE` → `com.zhiying.settings/.picturemode.PictureModeActivity` |
+| Projeção | `android.settings.PROJECTION` → `com.zhiying.settings/.projection.ProjectionActivity` |
+| Som | `android.settings.SOUND_SETTINGS` → `com.android.tv.settings/.device.displaysound.DisplaySoundActivity` |
+| Fontes | `android.settings.SOURCE` → `com.newlink.source/.SourceUIActivity` |
+| Todos os ajustes | `android.settings.SETTINGS` → `com.zhiying.settings/.MainActivity` |
+
+Os blocos só abrem as telas oficiais do fabricante; o launcher não controla hardware diretamente. Bloco cujo intent não resolve é escondido.
+
+### 2.8 Calendário
+
+- Painel de vidro abaixo de "Data e hora": mês atual em grade (semana começando no domingo, rótulos D S T Q Q S S), dias de fora do mês esmaecidos, hoje em círculo vermelho (#FF3B30).
+- ← → trocam de mês; o título mostra "outubro de 2026" (pt-BR).
+- Último item: "Ajustar data e hora…" → `android.settings.DATE_SETTINGS`.
+- Sem compromissos (exigiria `READ_CALENDAR` e conta sincronizada; fora de escopo).
+
 ## 3. Visual
 
 | Token | Valor | Uso |
@@ -134,6 +163,10 @@ Kotlin, Views nativas, `minSdk 31`, `targetSdk 34`, `compileSdk 35`. Sem depend�
 | `AppRepository` | Lista apps abríveis, resolve ícones, ignora apps desinstalados, escuta `PACKAGE_ADDED/REMOVED` | `PackageManager` |
 | `DockConfig` (lógica pura) | Ordem do Dock: adicionar, remover, mover, limite de 8, filtrar apps que sumiram | Nada (testável na JVM) |
 | `ImageMath` (lógica pura) | Cálculo de redimensionamento e recorte "cover" para 1920x1080 e fator de amostragem | Nada (testável na JVM) |
+| `ShortcutResolver` | Lista de atalhos do sistema (Ajustes, Fontes, Wi-Fi, Bluetooth, blocos da Central) com intent e plano B; informa quais resolvem no aparelho | `PackageManager` |
+| `ControlCenterPanel` | Painel 2 x 4 da Central de Controle | `ShortcutResolver` |
+| `CalendarPanel` | Painel do calendário, troca de mês | `CalendarMath` |
+| `CalendarMath` (lógica pura) | Grade de 42 dias de um mês (início no domingo), dias de fora do mês, dia de hoje | Nada (testável na JVM) |
 | `NewAppsTracker` (lógica pura) | Decide quais apps são "novos": conjunto conhecido na primeira execução + conjunto já aberto | Nada (testável na JVM) |
 | `Prefs` | `SharedPreferences`: ordem do Dock, papel de parede escolhido, apps conhecidos e já abertos | Nada |
 | `AllAppsActivity` | Grade paginada "Todos os apps", menu de contexto, ponto azul | `AppRepository`, `DockConfig`, `NewAppsTracker`, `Prefs` |
@@ -162,6 +195,8 @@ Manifesto:
 | App do Dock desinstalado e Dock com vaga | A vaga fica livre; nada entra sozinho |
 | "Adicionar ao Dock" com 8 favoritos | Item desabilitado, texto "Dock cheio" |
 | Mais de 18 apps | Paginação; nunca rolagem contínua |
+| Bloco da Central de Controle sem tela correspondente | Bloco escondido; a grade se reorganiza |
+| Data do sistema errada (sem internet) | Calendário mostra o que o sistema informa; "Ajustar data e hora…" corrige |
 
 ## 6. Compilação
 
@@ -171,8 +206,8 @@ Manifesto:
 
 ## 7. Testes
 
-1. **JVM (unitários):** `DockConfig` (adicionar, remover, mover, limite, app sumido), `NewAppsTracker` (primeira execução, app instalado depois, app aberto, app desinstalado e reinstalado) e `ImageMath` (proporções 16:9, 4:3, retrato, 4K, imagem menor que a tela).
-2. **No aparelho, via ADB (roteiro escrito antes):** instalação, abertura por `am start`, navegação com `input keyevent` (DPAD_LEFT/RIGHT/UP/DOWN, DPAD_CENTER, BACK, MENU) conferida por captura de tela, abertura de cada app do Dock, menu "Início" e cada item, troca de papel de parede, envio de foto pelo script, Organizar Dock, "Todos os apps" (paginação, ponto azul após instalar um app de teste, "Adicionar ao Dock", "Dock cheio").
+1. **JVM (unitários):** `DockConfig` (adicionar, remover, mover, limite, app sumido), `NewAppsTracker` (primeira execução, app instalado depois, app aberto, app desinstalado e reinstalado), `CalendarMath` (mês começando no domingo, fevereiro bissexto, virada de ano, dia de hoje) e `ImageMath` (proporções 16:9, 4:3, retrato, 4K, imagem menor que a tela).
+2. **No aparelho, via ADB (roteiro escrito antes):** instalação, abertura por `am start`, navegação com `input keyevent` (DPAD_LEFT/RIGHT/UP/DOWN, DPAD_CENTER, BACK, MENU) conferida por captura de tela, abertura de cada app do Dock, menu "Início" e cada item, troca de papel de parede, envio de foto pelo script, Organizar Dock, "Todos os apps" (paginação, ponto azul após instalar um app de teste, "Adicionar ao Dock", "Dock cheio"), barra de menu (cada item abre a tela certa), cada bloco da Central de Controle e o calendário (troca de mês, dia de hoje).
 3. **Medições:** memória (PSS) e abertura a frio do launcher novo comparadas com os 87 MB do original, 3 medições cada.
 4. **Na tela, com o dono do aparelho:** visual, legibilidade a distância, controle real, seleção como launcher padrão pela tela do Android, e retorno ao launcher original.
 
