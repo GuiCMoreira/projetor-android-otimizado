@@ -81,7 +81,7 @@ Painel de vidro abaixo de "Início", com:
 ### 2.4 Papel de parede
 
 - Tela com duas fileiras: **Degradês** (4, desenhados por código, sem imagem) e **Fotos** (3 incluídas no app + as enviadas pelo computador).
-- Fotos incluídas: 3 imagens de paisagem com licença livre (Unsplash License), reduzidas para 1920x1080 em JPEG antes de entrar no projeto.
+- Fotos incluídas: nenhuma. As 3 fotos de paisagem da versão inicial foram retiradas a pedido do dono (26/10/2026); as fotos vêm só do computador.
 - Fotos enviadas: o app lê a pasta própria `Android/data/<pacote>/files/wallpapers/` (sem pedir permissão de armazenamento). O script `scripts/enviar-wallpaper.sh foto.jpg` reduz a foto para 1920x1080 no computador e envia por `adb push`.
 - A escolha fica salva e vale até ser trocada.
 
