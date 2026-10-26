@@ -8,3 +8,4 @@ launcher/.gradle/
 launcher/local.properties
 launcher/keystore.properties
 launcher/.kotlin/
+apk/
