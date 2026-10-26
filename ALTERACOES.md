@@ -25,3 +25,13 @@ Hashes SHA-256 dos APKs salvos:
 - Os 6 desativados aparecem em `pm list packages -d`. Nenhum processo `uota` rodando.
 - YouTube, Netflix, Crunchyroll, Pluto TV, Projectivy, Play Store e Gboard continuam ativos. Gboard segue como teclado padrão.
 - `MemAvailable`: 140 MB antes (com 3 apps abertos), 233 MB depois. Não é uma comparação justa; a medição definitiva será feita após reiniciar.
+
+## 26/10/2026, launcher Início
+
+| # | Alteração | Comando aplicado | Como desfazer |
+|---|---|---|---|
+| 9 | Instalado o launcher Início 1.0 (`br.gui.inicio`) | `adb install apk/Inicio-1.0.apk` | `adb uninstall br.gui.inicio` |
+| 10 | Início escolhido como tela padrão (pelo dono, na tela do Android) | botão Início > "Início" > "Sempre" | desinstalar, ou menu "Início" > "Launcher original" |
+| 11 | Downloader (`com.esaba.downloader`) removido por engano durante os testes | `pm uninstall --user 0 com.esaba.downloader` | reinstalar pela Play Store |
+
+O launcher do fabricante continua instalado e ativo.

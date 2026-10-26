@@ -6,3 +6,6 @@ launcher/build/
 launcher/app/build/
 launcher/.gradle/
 launcher/local.properties
+launcher/keystore.properties
+launcher/.kotlin/
+apk/
