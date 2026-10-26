@@ -14,8 +14,8 @@ android {
         applicationId = "br.gui.inicio"
         minSdk = 31
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     signingConfigs {
@@ -52,4 +52,6 @@ kotlin {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    // org.json já vem no Android; nos testes da JVM é preciso a implementação de verdade.
+    testImplementation("org.json:json:20240303")
 }

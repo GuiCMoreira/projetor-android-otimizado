@@ -39,6 +39,9 @@ class StatusMonitor(private val ctx: Context, private val onChange: (wifi: Boole
         }
     }
 
+    /** Relê o Bluetooth (não há aviso de mudança sem a permissão BLUETOOTH_CONNECT). */
+    fun refresh() = emit()
+
     private fun emit() = onChange(connected, bluetoothEnabled())
 
     /** No Android 12 ler o estado pode exigir BLUETOOTH_CONNECT; sem ela, null esconde o ícone. */

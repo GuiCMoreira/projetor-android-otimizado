@@ -7,7 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.view.View
 
-enum class Glyph { GEAR, INPUT, GRID, WIFI, BLUETOOTH, CONTROLS, FOCUS, KEYSTONE, ZOOM, PICTURE, PROJECTION, SOUND, CHECK }
+enum class Glyph { GEAR, INPUT, GRID, WIFI, BLUETOOTH, CONTROLS, FOCUS, KEYSTONE, ZOOM, PICTURE, PROJECTION, SOUND, CHECK, TIMER, LOCATION }
 
 /** Ícones desenhados em código, para não depender de fontes de símbolos que o aparelho não tem. */
 object Glyphs {
@@ -125,6 +125,21 @@ object Glyphs {
                     val rr = r * 0.32f * k
                     c.drawArc(cx + r * 0.05f - rr, cy - rr, cx + r * 0.05f + rr, cy + rr, -45f, 90f, false, p)
                 }
+            }
+            Glyph.TIMER -> {
+                c.drawCircle(cx, cy + r * 0.08f, r * 0.72f, p)
+                c.drawLine(cx, cy + r * 0.08f, cx, cy - r * 0.32f, p)
+                c.drawLine(cx, cy + r * 0.08f, cx + r * 0.3f, cy + r * 0.25f, p)
+                c.drawLine(cx - r * 0.2f, cy - r * 0.9f, cx + r * 0.2f, cy - r * 0.9f, p)
+            }
+            Glyph.LOCATION -> {
+                val path = Path().apply {
+                    moveTo(cx, cy + r * 0.85f)
+                    cubicTo(cx - r * 0.95f, cy - r * 0.05f, cx - r * 0.55f, cy - r * 0.85f, cx, cy - r * 0.85f)
+                    cubicTo(cx + r * 0.55f, cy - r * 0.85f, cx + r * 0.95f, cy - r * 0.05f, cx, cy + r * 0.85f)
+                }
+                c.drawPath(path, p)
+                c.drawCircle(cx, cy - r * 0.25f, r * 0.2f, f)
             }
             Glyph.CHECK -> {
                 c.drawLine(cx - r * 0.5f, cy, cx - r * 0.1f, cy + r * 0.4f, p)

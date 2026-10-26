@@ -26,3 +26,13 @@ Leitura honesta dos números:
 ## O que não foi feito
 - Foto pelo pendrive (decidido para uma versão futura; fotos vão pelo computador).
 - Desativar o launcher do fabricante (etapa separada, só com aprovação).
+
+## Versão 1.1 (26/10/2026)
+| | Fabricante (zeasn) | Início 1.0 | Início 1.1 |
+|---|---|---|---|
+| Memória (PSS) | 101 MB | 61 MB | 65 MB (69, 60, 67) |
+| Abertura a frio | 1663 ms | 1061 ms | 1366 ms (1301, 1279, 1517) |
+| CPU parado | 0,0% | 0,0% | 0,0% |
+
+A 1.1 usa ~4 MB a mais porque o fundo passou a ser uma foto em cor cheia (troca automática ligada); com degradê volta perto dos 61 MB. A abertura ficou ~0,3 s mais lenta. Continua 35% abaixo do launcher do fabricante em memória.
+QA no aparelho: 13 cenários PASS e 1 registro de medição (`docs/qa/resultado-launcher-v1.1.md`).

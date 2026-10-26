@@ -35,4 +35,6 @@ Hashes SHA-256 dos APKs salvos:
 | 11 | Downloader (`com.esaba.downloader`) removido por engano durante os testes | `pm uninstall --user 0 com.esaba.downloader` | reinstalar pela Play Store |
 | 12 | Launcher do fabricante desativado (foi quem instalou o adware; com ele ativo, regrava `nl_curr_home_launcher`) | `pm disable-user --user 0 com.zeasn.launcher.projector` | `pm enable com.zeasn.launcher.projector` (e os comandos da linha 10) |
 
+| 13 | Launcher Início atualizado para a 1.1 (clima, descanso de tela, troca de fundo, volume, timer). Nova permissão: internet | `adb install -r apk/Inicio-1.1.apk` | `adb install -r -d apk/Inicio-1.0.apk` (volta para a 1.0) |
+
 O launcher do fabricante continua instalado, mas desativado. Conferido após reiniciar: a tela padrão continua sendo o Início.

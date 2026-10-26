@@ -4,11 +4,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
+import android.media.ExifInterface
 import br.gui.inicio.core.BoxBlur
 import br.gui.inicio.core.Guard
 import br.gui.inicio.core.ImageMath
+import br.gui.inicio.core.Rotation
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.ui.Theme
 import java.io.File
@@ -36,7 +39,7 @@ class WallpaperLoader(private val ctx: Context) {
             is WallpaperChoice.Asset -> decodeCover({ ctx.assets.open("wallpapers/${choice.name}") }, w, h)
             is WallpaperChoice.UserFile -> {
                 val file = userDir()?.let { File(it, choice.name) }
-                if (file != null && file.isFile) decodeCover({ file.inputStream() }, w, h) else null
+                if (file != null && file.isFile) decodeCover({ file.inputStream() }, w, h, exifRotation(file)) else null
             }
         }
     } catch (e: Exception) {
@@ -54,7 +57,27 @@ class WallpaperLoader(private val ctx: Context) {
 
     private fun userDir(): File? = ctx.getExternalFilesDir("wallpapers")
 
-    private fun decodeCover(open: () -> InputStream, w: Int, h: Int): Bitmap? {
+    /**
+     * Fundo efetivo agora: com a troca automática ligada e fotos enviadas, a foto da vez pelo relógio;
+     * senão, a escolha salva.
+     */
+    fun effective(saved: WallpaperChoice, rotateMinutes: Int, nowMs: Long): WallpaperChoice {
+        val files = userFiles()
+        val i = Rotation.index(nowMs, rotateMinutes, files.size)
+        return if (i < 0) saved else WallpaperChoice.UserFile(files[i])
+    }
+
+    /** Graus para deixar a foto em pé (foto de celular copiada sem o script vem com a orientação só no EXIF). */
+    private fun exifRotation(file: File): Int = Guard.run({ 0 }) {
+        when (ExifInterface(file.path).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> 90
+            ExifInterface.ORIENTATION_ROTATE_180 -> 180
+            ExifInterface.ORIENTATION_ROTATE_270 -> 270
+            else -> 0
+        }
+    }
+
+    private fun decodeCover(open: () -> InputStream, w: Int, h: Int, rotation: Int = 0): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         open().use { BitmapFactory.decodeStream(it, null, bounds) }
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
@@ -62,7 +85,11 @@ class WallpaperLoader(private val ctx: Context) {
             inSampleSize = ImageMath.sampleSize(bounds.outWidth, bounds.outHeight, w, h)
             inPreferredConfig = Bitmap.Config.ARGB_8888
         }
-        val src = open().use { BitmapFactory.decodeStream(it, null, opts) } ?: return null
+        val decoded = open().use { BitmapFactory.decodeStream(it, null, opts) } ?: return null
+        val src = if (rotation == 0) decoded else {
+            val m = Matrix().apply { postRotate(rotation.toFloat()) }
+            Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, m, true).also { if (it !== decoded) decoded.recycle() }
+        }
         val crop = ImageMath.coverCrop(src.width, src.height, w, h)
         // Cor cheia: em 16 bits (RGB_565) céus e degradês de fotos ficam com faixas visíveis.
         val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)

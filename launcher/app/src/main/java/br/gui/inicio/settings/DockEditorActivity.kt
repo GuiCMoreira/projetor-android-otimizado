@@ -143,7 +143,7 @@ class DockEditorActivity : Activity() {
     private fun move(pkg: String, delta: Int) {
         val dock = prefs.dock
         if (!dock.contains(pkg)) return
-        prefs.dock = dock.move(pkg, delta)
+        prefs.dock = dock.move(pkg, delta, installed)
         refresh()
     }
 

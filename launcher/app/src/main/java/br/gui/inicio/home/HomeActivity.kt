@@ -1,6 +1,10 @@
 package br.gui.inicio.home
 
 import android.app.Activity
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.TransitionDrawable
+import android.os.Handler
+import android.os.Looper
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -20,6 +24,14 @@ import br.gui.inicio.apps.AllAppsActivity
 import br.gui.inicio.core.ClockFormat
 import br.gui.inicio.core.Guard
 import br.gui.inicio.core.NewAppsTracker
+import br.gui.inicio.core.Options
+import br.gui.inicio.core.City
+import br.gui.inicio.core.Screensaver
+import br.gui.inicio.core.WakeKey
+import br.gui.inicio.core.WeatherSchedule
+import br.gui.inicio.core.WeatherCodes
+import br.gui.inicio.data.WeatherRepository
+import br.gui.inicio.settings.CityActivity
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.data.AppEntry
 import br.gui.inicio.data.AppRepository
@@ -60,8 +72,22 @@ class HomeActivity : Activity() {
     private lateinit var panels: PanelHost
     private lateinit var status: StatusMonitor
     private val io: ExecutorService = Executors.newSingleThreadExecutor()
+    /** Rede do clima em fila própria: DNS sem resposta não segura o Dock nem o papel de parede. */
+    private val net: ExecutorService = Executors.newSingleThreadExecutor()
     private var loadedChoice: WallpaperChoice? = null
     private var dockLoaded = false
+    private lateinit var weatherView: WeatherView
+    private lateinit var weather: WeatherRepository
+    private lateinit var screensaver: ScreensaverView
+    private val main = Handler(Looper.getMainLooper())
+    private val startScreensaver = Runnable { enterScreensaver() }
+    private var weatherLoading = false
+    private var weatherAttemptMs = 0L
+    private var weatherAttemptCity: City? = null
+    /** Telas abertas pelo menu "Início" devolvem o foco ao Dock na volta (e não à barra). */
+    private var returnFocusToDock = false
+    /** A tecla que tirou do descanso de tela é consumida inteira (descer e subir), para não abrir nada por engano. */
+    private val wakeKey = WakeKey()
 
     private val timeReceiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context, i: Intent) = tick()
@@ -88,6 +114,8 @@ class HomeActivity : Activity() {
         root.addView(wallpaperView, FrameLayout.LayoutParams(match, match))
         clock = ClockView(this)
         root.addView(clock, FrameLayout.LayoutParams(match, wrap, Gravity.TOP).apply { topMargin = Theme.si(170f) })
+        weatherView = WeatherView(this)
+        root.addView(weatherView, FrameLayout.LayoutParams(wrap, wrap, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = Theme.si(520f) })
         menuBar = MenuBarView(this, ::onBarItem)
         root.addView(menuBar, FrameLayout.LayoutParams(match, Theme.si(56f), Gravity.TOP))
         dock = DockView(this)
@@ -100,7 +128,10 @@ class HomeActivity : Activity() {
         root.addView(tooltip, FrameLayout.LayoutParams(wrap, wrap, Gravity.TOP or Gravity.START))
         panels = PanelHost(this)
         root.addView(panels, FrameLayout.LayoutParams(match, match))
+        screensaver = ScreensaverView(this, loader, io)
+        root.addView(screensaver, FrameLayout.LayoutParams(match, match))
         setContentView(root)
+        weather = WeatherRepository(prefs)
 
         status = StatusMonitor(this) { wifi, bt -> menuBar.setStatus(wifi, bt) }
         dock.onUp = { menuBar.focusFirst() }
@@ -130,34 +161,56 @@ class HomeActivity : Activity() {
         tick()
         loadWallpaper()
         refreshApps()
+        showWeather()
+        scheduleScreensaver()
+        if (returnFocusToDock) {
+            returnFocusToDock = false
+            if (dockLoaded) dock.focusLast()
+        }
     }
 
     override fun onStop() {
         unregisterReceiver(timeReceiver)
         unregisterReceiver(packageReceiver)
         status.stop()
+        main.removeCallbacks(startScreensaver)
+        screensaver.stop()
         super.onStop()
     }
 
     override fun onDestroy() {
         io.shutdownNow()
+        net.shutdownNow()
         super.onDestroy()
     }
 
     /** Botão Início com a tela já aberta: fecha o painel e volta o foco ao Dock. */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        if (screensaver.isRunning) screensaver.stop()
+        scheduleScreensaver()
         panels.close()
         dock.focusFirst()
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val down = event.action == KeyEvent.ACTION_DOWN
+        when (wakeKey.handle(down, event.keyCode, event.repeatCount, screensaver.isRunning)) {
+            WakeKey.Decision.WAKE -> {
+                screensaver.stop()
+                scheduleScreensaver()
+                return true
+            }
+            WakeKey.Decision.CONSUME -> return true // repetições e o UP da tecla que acordou
+            WakeKey.Decision.PASS -> if (screensaver.isRunning) return true
+        }
+        if (event.action == KeyEvent.ACTION_DOWN) scheduleScreensaver() // qualquer tecla reinicia a contagem
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
             if (event.action == KeyEvent.ACTION_DOWN && panels.isOpen) panels.close()
             return true // na tela inicial, Voltar nunca sai
         }
         if (event.keyCode == KeyEvent.KEYCODE_MENU && event.action == KeyEvent.ACTION_DOWN) {
-            if (!panels.isOpen) openStartMenu(menuBar.startItem)
+            if (!panels.isOpen) openStartMenu(menuBar.startItem, opener = currentFocus ?: menuBar.startItem)
             return true
         }
         return super.dispatchKeyEvent(event)
@@ -167,10 +220,15 @@ class HomeActivity : Activity() {
         val now = LocalDateTime.now()
         clock.update(now)
         menuBar.setTime(ClockFormat.menuBar(now))
+        screensaver.tick(now)
+        status.refresh() // Bluetooth relido a cada minuto
+        if (::weather.isInitialized) showWeather()
+        // Troca automática: se a foto da vez mudou, carrega com esmaecimento.
+        if (dockLoaded && loader.effective(prefs.wallpaper, prefs.rotateMinutes, System.currentTimeMillis()) != loadedChoice) loadWallpaper()
     }
 
     private fun loadWallpaper() {
-        val choice = prefs.wallpaper
+        val choice = loader.effective(prefs.wallpaper, prefs.rotateMinutes, System.currentTimeMillis())
         if (choice == loadedChoice && GlassSource.blurred != null) return
         val m = resources.displayMetrics
         io.execute {
@@ -178,7 +236,19 @@ class HomeActivity : Activity() {
                 val result = loader.load(choice, m.widthPixels, m.heightPixels)
                 runOnUiThread {
                     if (isDestroyed) return@runOnUiThread
-                    wallpaperView.setImageBitmap(result.full)
+                    val current = wallpaperView.drawable
+                    // Só a camada de cima de um esmaecimento anterior: senão cada troca guarda a foto anterior inteira.
+                    val old = (current as? TransitionDrawable)?.getDrawable(1) ?: current
+                    if (old != null && result.full != null) {
+                        // Esmaece do fundo anterior para o novo e, terminado, fica só a foto nova.
+                        val next = BitmapDrawable(resources, result.full)
+                        val fade = TransitionDrawable(arrayOf(old, next)).apply { isCrossFadeEnabled = true }
+                        wallpaperView.setImageDrawable(fade)
+                        fade.startTransition(FADE_MS)
+                        main.postDelayed({ if (wallpaperView.drawable === fade) wallpaperView.setImageDrawable(next) }, FADE_MS + 100L)
+                    } else {
+                        wallpaperView.setImageBitmap(result.full)
+                    }
                     GlassSource.blurred = result.blurred
                     loadedChoice = choice
                     root.invalidateTree()
@@ -193,7 +263,7 @@ class HomeActivity : Activity() {
             Guard.run({ Log.w(TAG, "falha ao montar o Dock", it) }) {
                 val apps = repo.launchable()
                 val installed = apps.mapTo(HashSet()) { it.pkg }
-                prefs.newApps = NewAppsTracker.ensureInitialized(prefs.newApps, System.currentTimeMillis())
+                prefs.updateNewApps { NewAppsTracker.ensureInitialized(it, System.currentTimeMillis()) }
                 val items = buildDock(apps, installed)
                 runOnUiThread {
                     if (isDestroyed) return@runOnUiThread
@@ -236,7 +306,7 @@ class HomeActivity : Activity() {
     }
 
     private fun openApp(e: AppEntry) {
-        prefs.newApps = NewAppsTracker.markOpened(prefs.newApps, e.pkg, System.currentTimeMillis())
+        prefs.updateNewApps { NewAppsTracker.markOpened(it, e.pkg, System.currentTimeMillis()) }
         if (!repo.launch(e)) Toast.makeText(this, "Não foi possível abrir ${e.label}", Toast.LENGTH_SHORT).show()
     }
 
@@ -266,10 +336,13 @@ class HomeActivity : Activity() {
         }
     }
 
-    private fun openStartMenu(anchor: View) {
+    private fun openStartMenu(anchor: View, opener: View = anchor) {
+        val saver = prefs.screensaverMinutes
         val entries = mutableListOf(
-            MenuEntry("Papel de parede…") { startActivity(Intent(this, WallpaperActivity::class.java)) },
-            MenuEntry("Organizar Dock…") { startActivity(Intent(this, DockEditorActivity::class.java)) },
+            MenuEntry("Papel de parede…") { openFromMenu(WallpaperActivity::class.java) },
+            MenuEntry("Organizar Dock…") { openFromMenu(DockEditorActivity::class.java) },
+            MenuEntry("Cidade do clima…") { openFromMenu(CityActivity::class.java) },
+            MenuEntry("Descanso de tela: ${if (saver == 0) "desligado" else "$saver min"}") { cycleScreensaver() },
         )
         val firstOfGroup = entries.size
         if (shortcuts.isAvailable(Shortcuts.SETTINGS)) {
@@ -282,7 +355,61 @@ class HomeActivity : Activity() {
             entries += MenuEntry("Launcher original do fabricante", separatorBefore = true) { shortcuts.open(Shortcuts.ORIGINAL_LAUNCHER) }
         }
         val loc = IntArray(2).also { anchor.getLocationOnScreen(it) }
-        panels.show(MenuPanel(this, null, entries) { panels.close() }, PanelHost.below(start = loc[0]), anchor, locked())
+        panels.show(MenuPanel(this, null, entries) { panels.close() }, PanelHost.below(start = loc[0]), opener, locked())
+    }
+
+    private fun openFromMenu(screen: Class<out Activity>) {
+        returnFocusToDock = true
+        startActivity(Intent(this, screen))
+    }
+
+    private fun cycleScreensaver() {
+        val next = Options.next(Screensaver.OPTIONS, prefs.screensaverMinutes)
+        prefs.screensaverMinutes = next
+        Toast.makeText(this, if (next == 0) "Descanso de tela desligado" else "Descanso de tela depois de $next min parado", Toast.LENGTH_SHORT).show()
+        scheduleScreensaver()
+    }
+
+    private fun scheduleScreensaver() {
+        main.removeCallbacks(startScreensaver)
+        val minutes = prefs.screensaverMinutes
+        if (minutes > 0) main.postDelayed(startScreensaver, minutes * 60_000L)
+    }
+
+    /** Só entra com a tela inicial à vista e sem painel aberto; senão tenta de novo depois. */
+    private fun enterScreensaver() {
+        if (panels.isOpen || !hasWindowFocus()) {
+            scheduleScreensaver()
+            return
+        }
+        val photos = loader.userFiles().map { WallpaperChoice.UserFile(it) }
+        val slides = photos.ifEmpty { (0 until WallpaperChoice.GRADIENT_COUNT).map { WallpaperChoice.Gradient(it) } }
+        screensaver.start(slides, weatherLine())
+    }
+
+    private fun weatherLine(): String {
+        val w = weather.cached() ?: return ""
+        val city = prefs.weatherCity?.name ?: return ""
+        return "${w.temp}°  ·  ${WeatherCodes.describe(w.code)}  ·  $city"
+    }
+
+    /** Mostra o clima guardado na hora; se estiver velho, busca de novo em segundo plano (no máximo a cada 10 min). */
+    private fun showWeather() {
+        val now = System.currentTimeMillis()
+        weatherView.show(weather.cached(), prefs.weatherCity, prefs.weatherAt, now)
+        val city = prefs.weatherCity
+        val lastAttempt = if (city == weatherAttemptCity) weatherAttemptMs else 0L // cidade nova não espera
+        if (weatherLoading || !WeatherSchedule.shouldFetch(now, prefs.weatherAt, lastAttempt)) return
+        weatherLoading = true
+        weatherAttemptMs = now
+        weatherAttemptCity = city
+        net.execute {
+            Guard.run({ Log.w(TAG, "falha ao buscar o clima", it) }) { weather.refresh() }
+            runOnUiThread {
+                weatherLoading = false
+                if (!isDestroyed) weatherView.show(weather.cached(), prefs.weatherCity, prefs.weatherAt, System.currentTimeMillis())
+            }
+        }
     }
 
     private fun openControlCenter(anchor: View) {
@@ -305,6 +432,7 @@ class HomeActivity : Activity() {
 
     private companion object {
         const val TAG = "Inicio"
+        private const val FADE_MS = 1000
         const val BLUE_TOP = 0xFF3A7BFD.toInt()
         const val BLUE_BOTTOM = 0xFF1F4FD8.toInt()
         const val GRAY_TOP = 0xFF9A9CA3.toInt()

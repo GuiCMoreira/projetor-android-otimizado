@@ -40,6 +40,7 @@ class AllAppsActivity : Activity() {
     private val io: ExecutorService = Executors.newSingleThreadExecutor()
     private var apps: List<AppEntry> = emptyList()
     private var page = 0
+    private var pageLoading = false // segurar → não pode pular páginas antes de a atual aparecer
     private val pageCount: Int get() = maxOf(1, (apps.size + PAGE - 1) / PAGE)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +74,7 @@ class AllAppsActivity : Activity() {
         io.execute {
             Guard.run({ Log.w(TAG, "falha ao listar os apps", it) }) {
                 val list = repo.launchable()
-                prefs.newApps = NewAppsTracker.ensureInitialized(prefs.newApps, System.currentTimeMillis())
+                prefs.updateNewApps { NewAppsTracker.ensureInitialized(it, System.currentTimeMillis()) }
                 runOnUiThread {
                     if (isDestroyed) return@runOnUiThread
                     apps = list
@@ -90,6 +91,7 @@ class AllAppsActivity : Activity() {
 
     private fun showPage(p: Int, focusIndex: Int) {
         page = p
+        pageLoading = true
         val slice = apps.drop(p * PAGE).take(PAGE)
         val size = Theme.si(144f)
         io.execute {
@@ -97,6 +99,7 @@ class AllAppsActivity : Activity() {
                 val icons = slice.map { repo.iconBitmap(it, size) }
                 runOnUiThread {
                     if (isDestroyed || page != p) return@runOnUiThread
+                    pageLoading = false
                     val state = prefs.newApps
                     grid.removeAllViews()
                     slice.forEachIndexed { i, entry -> grid.addView(cell(entry, icons[i], NewAppsTracker.isNew(state, entry.pkg, entry.installedAt))) }
@@ -178,6 +181,7 @@ class AllAppsActivity : Activity() {
                 }
                 return super.dispatchKeyEvent(event)
             }
+            if (pageLoading && (event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT || event.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)) return true
             val focused = grid.focusedChild
             if (focused != null) {
                 val idx = grid.indexOfChild(focused)
@@ -220,7 +224,7 @@ class AllAppsActivity : Activity() {
     }
 
     private fun open(entry: AppEntry) {
-        prefs.newApps = NewAppsTracker.markOpened(prefs.newApps, entry.pkg, System.currentTimeMillis())
+        prefs.updateNewApps { NewAppsTracker.markOpened(it, entry.pkg, System.currentTimeMillis()) }
         repo.launch(entry)
     }
 

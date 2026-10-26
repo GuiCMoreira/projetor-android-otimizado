@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.tv.TvContract
 import android.provider.Settings
+import br.gui.inicio.core.Guard
 import br.gui.inicio.ui.Glyph
 
 /** Atalho para uma tela do sistema ou do fabricante. [intents] em ordem de preferência (o primeiro que existir). */
@@ -38,19 +39,26 @@ object Shortcuts {
     val PICTURE = SystemShortcut("picture", "Modo de imagem", "Cores e brilho", Glyph.PICTURE, listOf(action("com.zhiying.PICTUREMODE")))
     val PROJECTION = SystemShortcut("projection", "Projeção", "Frontal, teto, traseira", Glyph.PROJECTION, listOf(action("android.settings.PROJECTION")))
     val SOUND = SystemShortcut("sound", "Som", "Saída e volume", Glyph.SOUND, listOf(action(Settings.ACTION_SOUND_SETTINGS)))
+    /** Timer para desligar: abre "Outros ajustes" do projetor, onde fica o "Desligamento programado" oficial. */
+    val SLEEP_TIMER = SystemShortcut("sleep", "Timer para desligar", "Desligamento programado", Glyph.TIMER, listOf(action("android.settings.OTHER_SETTINGS")))
     val ORIGINAL_LAUNCHER = SystemShortcut(
         "original", "Launcher original do fabricante", "", Glyph.GRID,
         listOf(Intent(Intent.ACTION_MAIN).setComponent(ComponentName("com.zeasn.launcher.projector", "com.zeasn.launcher.ui.MainActivity"))),
     )
 
-    val CONTROL_CENTER = listOf(AUTOFOCUS, KEYSTONE, ZOOM, PICTURE, PROJECTION, SOUND, SOURCE, SETTINGS)
+    val CONTROL_CENTER = listOf(AUTOFOCUS, KEYSTONE, ZOOM, PICTURE, PROJECTION, SOUND, SOURCE, SLEEP_TIMER, SETTINGS)
 }
 
 class ShortcutResolver(private val ctx: Context) {
-    /** Primeiro intent que existe neste aparelho; null esconde o atalho. Desativado também conta como inexistente. */
+    /** Primeiro intent que existe neste aparelho; null esconde o atalho. App desativado também conta como inexistente. */
     fun intentFor(s: SystemShortcut): Intent? =
-        s.intents.firstOrNull { it.resolveActivity(ctx.packageManager) != null }
-            ?.let { Intent(it).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+        s.intents.firstOrNull { isOpenable(it) }?.let { Intent(it).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+
+    /** resolveActivity ainda devolve a tela de um app desativado quando o componente é explícito; por isso a checagem extra. */
+    private fun isOpenable(intent: Intent): Boolean {
+        val info = intent.resolveActivity(ctx.packageManager) ?: return false
+        return Guard.run({ false }) { ctx.packageManager.getApplicationInfo(info.packageName, 0).enabled }
+    }
 
     fun isAvailable(s: SystemShortcut): Boolean = intentFor(s) != null
 
