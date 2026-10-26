@@ -244,10 +244,12 @@ class HomeActivity : Activity() {
         tooltip.text = item.label
         tooltip.visibility = View.VISIBLE
         tooltip.post {
+            // Posição final do ícone (layout do Dock), sem a animação em curso: o ícone em foco volta ao centro do seu lugar.
             val loc = IntArray(2)
-            anchor.getLocationOnScreen(loc)
-            tooltip.x = loc[0] + anchor.width / 2f - tooltip.width / 2f
-            tooltip.y = loc[1] - anchor.height * 0.35f - Theme.s(16f) - tooltip.height - Theme.s(18f)
+            dock.getLocationOnScreen(loc)
+            tooltip.x = loc[0] + anchor.left + anchor.width / 2f - tooltip.width / 2f
+            val grownTop = loc[1] + anchor.top - anchor.height * (DockView.FOCUS_SCALE - 1f) - Theme.s(16f)
+            tooltip.y = grownTop - tooltip.height - Theme.s(18f)
             tooltip.invalidate() // o vidro depende da posição na tela
         }
     }

@@ -19,7 +19,10 @@ data class DockItem(
     val onOpen: () -> Unit,
 )
 
-/** Dock de vidro: o ícone em foco cresce 35% e sobe; a Home mostra o nome num balão. */
+/**
+ * Dock de vidro: o ícone em foco cresce 30% e sobe, e os vizinhos se afastam (como no macOS) para nunca encostarem nele.
+ * A Home mostra o nome num balão.
+ */
 class DockView(ctx: Context) : LinearLayout(ctx) {
     var onUp: () -> Unit = {}
     var onFocusItem: (View, DockItem) -> Unit = { _, _ -> }
@@ -32,7 +35,25 @@ class DockView(ctx: Context) : LinearLayout(ctx) {
         clipChildren = false
         clipToPadding = false
         background = GlassDrawable(this, Theme.s(40f))
-        setPadding(Theme.si(22f), Theme.si(18f), Theme.si(22f), Theme.si(18f))
+        // Margem lateral = margem normal + afastamento, para os ícones das pontas não saírem do vidro ao se afastarem.
+        val side = Theme.si(22f + PUSH)
+        setPadding(side, Theme.si(18f), side, Theme.si(18f))
+    }
+
+    /** Afasta para os lados tudo o que estiver à esquerda e à direita de [focused]; null volta todos ao lugar. */
+    private fun spreadAround(focused: View?) {
+        val center = focused?.let { indexOfChild(it) } ?: -1
+        val push = Theme.s(PUSH)
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+            if (child === focused) continue
+            val tx = when {
+                center < 0 -> 0f
+                i < center -> -push
+                else -> push
+            }
+            child.animate().translationX(tx).setDuration(150).start()
+        }
     }
 
     fun setItems(items: List<DockItem>) {
@@ -60,14 +81,19 @@ class DockView(ctx: Context) : LinearLayout(ctx) {
                 }
                 setOnFocusChangeListener { view, has ->
                     view.animate()
-                        .scaleX(if (has) 1.35f else 1f)
-                        .scaleY(if (has) 1.35f else 1f)
+                        .scaleX(if (has) FOCUS_SCALE else 1f)
+                        .scaleY(if (has) FOCUS_SCALE else 1f)
                         .translationY(if (has) -Theme.s(16f) else 0f)
+                        .apply { if (has) translationX(0f) }
                         .setDuration(150)
                         .start()
                     if (has) {
                         lastFocused = view
+                        spreadAround(view)
                         onFocusItem(view, item)
+                    } else {
+                        // Foco saiu do Dock (foi para a barra ou um painel): todos voltam ao lugar.
+                        post { if (icons.none { it.isFocused }) spreadAround(null) }
                     }
                 }
                 setOnClickListener { item.onOpen() }
@@ -98,4 +124,14 @@ class DockView(ctx: Context) : LinearLayout(ctx) {
     }
 
     fun hasFocusedItem(): Boolean = icons.any { it.isFocused }
+
+    companion object {
+        const val FOCUS_SCALE = 1.3f
+
+        /**
+         * Quanto os vizinhos se afastam, em px de uma tela 1920. O ícone de 112 px cresce 16,8 px de cada lado
+         * (30%); com 20 px de vão normal + 24 de afastamento, sobram ~27 px de respiro entre o ícone em foco e o vizinho.
+         */
+        const val PUSH = 24f
+    }
 }
