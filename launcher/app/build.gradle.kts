@@ -52,4 +52,6 @@ kotlin {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    // org.json já vem no Android; nos testes da JVM é preciso a implementação de verdade.
+    testImplementation("org.json:json:20240303")
 }

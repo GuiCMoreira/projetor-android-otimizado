@@ -56,9 +56,9 @@ class DockConfigTest {
 
     @Test fun moveShiftsAndClampsAtEdges() {
         val c = cfg("a.yt", "b.nf", "c.cr")
-        assertEquals(listOf("b.nf", "a.yt", "c.cr"), c.move("a.yt", 1).packages)
-        assertEquals(c, c.move("c.cr", 1))
-        assertEquals(c, c.move("a.yt", -1))
-        assertEquals(c, c.move("zz.z", 1))
+        assertEquals(listOf("b.nf", "a.yt", "c.cr"), c.move("a.yt", 1, all).packages)
+        assertEquals(c, c.move("c.cr", 1, all))
+        assertEquals(c, c.move("a.yt", -1, all))
+        assertEquals(c, c.move("zz.z", 1, all))
     }
 }

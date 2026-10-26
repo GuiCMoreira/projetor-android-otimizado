@@ -19,15 +19,15 @@ data class DockConfig(val packages: List<String>) {
 
     fun remove(pkg: String): DockConfig = copy(packages = packages - pkg)
 
-    fun move(pkg: String, delta: Int): DockConfig {
-        val from = packages.indexOf(pkg)
+    /** Troca de lugar com o vizinho visível (favoritos desinstalados, ocultos, não contam). */
+    fun move(pkg: String, delta: Int, installed: Set<String>): DockConfig {
+        val shown = visible(installed)
+        val from = shown.indexOf(pkg)
         if (from < 0) return this
-        val to = (from + delta).coerceIn(0, packages.lastIndex)
+        val to = (from + delta).coerceIn(0, shown.lastIndex)
         if (to == from) return this
-        val list = packages.toMutableList().apply {
-            removeAt(from)
-            add(to, pkg)
-        }
+        val other = shown[to]
+        val list = packages.map { if (it == pkg) other else if (it == other) pkg else it }
         return copy(packages = list)
     }
 

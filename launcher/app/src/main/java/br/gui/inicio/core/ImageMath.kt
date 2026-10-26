@@ -8,6 +8,9 @@ object ImageMath {
         require(srcW > 0 && srcH > 0 && dstW > 0 && dstH > 0) { "medidas devem ser positivas" }
         var size = 1
         while (srcW / (size * 2) >= dstW && srcH / (size * 2) >= dstH) size *= 2
+        // Teto de memória: panoramas muito largos não passam de 4x os pixels da tela depois de decodificados.
+        val maxPixels = dstW.toLong() * dstH * 4
+        while ((srcW / size).toLong() * (srcH / size) > maxPixels) size *= 2
         return size
     }
 
@@ -15,10 +18,10 @@ object ImageMath {
     fun coverCrop(srcW: Int, srcH: Int, dstW: Int, dstH: Int): CropRect {
         require(srcW > 0 && srcH > 0 && dstW > 0 && dstH > 0) { "medidas devem ser positivas" }
         return if (srcW.toLong() * dstH > srcH.toLong() * dstW) {
-            val w = (srcH.toLong() * dstW / dstH).toInt()
+            val w = (srcH.toLong() * dstW / dstH).toInt().coerceAtLeast(1)
             CropRect((srcW - w) / 2, 0, w, srcH)
         } else {
-            val h = (srcW.toLong() * dstH / dstW).toInt()
+            val h = (srcW.toLong() * dstH / dstW).toInt().coerceAtLeast(1) // foto minúscula: nunca recorte vazio
             CropRect(0, (srcH - h) / 2, srcW, h)
         }
     }
