@@ -55,7 +55,8 @@ data class WatchNextItem(
 )
 
 object WatchNextList {
-    const val MAX = 6
+    /** Cabem 4 cartões inteiros na largura da tela (340 px + 28 de vão, a partir da margem de 110). */
+    const val MAX = 4
 
     /** Códigos longos (20+ dígitos hexadecimais) da capa e do link: identificam o episódio mesmo quando o título muda. */
     private val LONG_ID = Regex("[0-9a-f]{20,}")

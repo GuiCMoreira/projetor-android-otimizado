@@ -9,6 +9,7 @@
 - À noite o clima diz "Predomínio de céu limpo" em vez de "Predomínio de sol".
 - Novas permissões: ler a lista "Ver a seguir" (`READ_EPG_DATA` e `READ_TV_LISTINGS`).
 - Ícone da Pluto TV 5.x com o logo inteiro (o "tv" saía cortado).
+- "Continuar assistindo" mostra no máximo 4 blocos: um 5º sairia cortado na borda da tela e o foco iria para fora dela.
 
 ## Início 1.1 (26/10/2026)
 - Widget de clima abaixo do relógio (Open-Meteo, sem conta). Cidade detectada pela internet na primeira vez; "Cidade do clima…" no menu Início para buscar outra.
