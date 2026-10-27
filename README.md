@@ -302,7 +302,7 @@ menu lateral e macOS. A escolhida foi a do macOS. A especificação de cada vers
 | **Barra de menu de vidro** | "Início" com o menu do launcher, Bluetooth, Wi-Fi, Central de Controle e data e hora. Tudo navegável pelo controle |
 | **Dock de vidro** | Até 8 favoritos fixos. O ícone em foco cresce 30% e os vizinhos se afastam, como no Mac. Um app novo nunca entra sozinho |
 | **Todos os apps** | Grade em páginas, ponto azul em app recém-instalado, menu para adicionar ao Dock |
-| **Central de Controle** | Volume de verdade (← →), foco automático, keystone, zoom, modo de imagem, projeção, fontes e o desligamento programado do próprio projetor |
+| **Central de Controle** | Volume de verdade (← →), foco automático, keystone, zoom, modo de imagem, projeção, fontes, o desligamento programado do próprio projetor e **Liberar memória**, que fecha os apps parados antes de abrir um app pesado (no teste: de 176 MB para 343 MB livres) |
 | **Calendário** | Mês inteiro na barra, como no macOS |
 | **Clima** | Open-Meteo, sem conta e sem chave. Cidade detectada pela internet na primeira vez ou escolhida numa busca |
 | **Papel de parede** | Degradês próprios ou fotos mandadas do computador, com troca automática a cada 1, 3, 6 horas ou 1 dia |
