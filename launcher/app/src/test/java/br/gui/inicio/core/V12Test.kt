@@ -115,6 +115,11 @@ class ScreensaverKeysTest {
     @Test fun otherKeysOnlyWake() {
         listOf(19, 20, 21, 22, 4, 3, 82).forEach { assertEquals(false, Screensaver.opensEpisode(it)) }
     }
+
+    /** O descanso só aparece na tela inicial, então um tempo curto não atrapalha quem está assistindo. */
+    @Test fun twoMinutesComesAfterOff() = assertEquals(2, Options.next(Screensaver.OPTIONS, 0))
+
+    @Test fun fiveMinutesComesAfterTwo() = assertEquals(5, Options.next(Screensaver.OPTIONS, 2))
 }
 
 /** À noite não existe "sol": o código 1 do Open-Meteo vira "Céu quase limpo" (cabe no widget do descanso). */

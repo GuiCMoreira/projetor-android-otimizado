@@ -24,7 +24,7 @@ object Options {
 
 object Screensaver {
     /** Minutos sem tecla até o descanso de tela (0 = desligado). */
-    val OPTIONS = listOf(0, 5, 10, 15, 30)
+    val OPTIONS = listOf(0, 2, 5, 10, 15, 30)
     const val DEFAULT = 5
 
     /** OK, Enter e o Enter do teclado numérico: acordam e já abrem o episódio do widget. */
