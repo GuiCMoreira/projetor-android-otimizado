@@ -86,25 +86,33 @@ do Mac. Nada disso roda em segundo plano.
 
 ## Telas
 
-| Primeira versão, com degradê | Menu "Início" |
-|---|---|
-| ![Primeira versão: relógio grande no centro e Dock de vidro](docs/capturas/05-inicio-1.0.webp) | ![Menu Início aberto na barra de cima](docs/capturas/06-menu-inicio.webp) |
+Todas tiradas do projetor como ele está hoje, na versão 1.2 do launcher.
 
-| Central de Controle com volume | Calendário |
+**Descanso de tela**, no estilo da tela de bloqueio do macOS: data e hora grandes, widgets de clima e
+do último episódio, e as suas fotos passando com zoom lento. OK sai do descanso e já abre o episódio.
+
+![Descanso de tela com data e hora grandes, widget de clima e widget do episódio](docs/capturas/13-descanso.webp)
+
+| "Continuar assistindo" com um episódio em foco | Menu "Início" |
 |---|---|
-| ![Central de Controle com barra de volume e atalhos do projetor](docs/capturas/07-central-controle.webp) | ![Calendário do mês aberto na barra](docs/capturas/08-calendario.webp) |
+| ![Fileira Continuar assistindo com o Naruto em foco, temporada, episódio e quanto falta](docs/capturas/04-continuar-assistindo.webp) | ![Menu Início aberto na barra de cima](docs/capturas/05-menu-inicio.webp) |
+
+| Central de Controle com volume de verdade | Calendário |
+|---|---|
+| ![Central de Controle com barra de volume e atalhos do projetor](docs/capturas/06-central-controle.webp) | ![Calendário do mês aberto na barra](docs/capturas/07-calendario.webp) |
 
 | Todos os apps, com ícones que preenchem o quadrado | Menu do app |
 |---|---|
-| ![Grade Todos os apps](docs/capturas/09-todos-os-apps.webp) | ![Menu de contexto com Adicionar ao Dock](docs/capturas/10-menu-contexto.webp) |
+| ![Grade Todos os apps](docs/capturas/08-todos-os-apps.webp) | ![Menu do app com Adicionar ao Dock](docs/capturas/09-menu-do-app.webp) |
 
-| Papel de parede | Clima: escolher a cidade |
+| Papel de parede e troca automática | Organizar Dock |
 |---|---|
-| ![Tela de papel de parede com degradês e fotos](docs/capturas/11-papel-de-parede.webp) | ![Busca de cidade do clima](docs/capturas/12-cidade-clima.webp) |
+| ![Tela de papel de parede com degradês, fotos e a fileira Trocar sozinho](docs/capturas/10-papel-de-parede.webp) | ![Lista de apps com a posição de cada um no Dock](docs/capturas/11-organizar-dock.webp) |
 
-| Descanso de tela no estilo da tela de bloqueio do macOS | Clima (versão 1.1) |
-|---|---|
-| ![Descanso com data e hora grandes e widgets de clima e episódio](docs/capturas/13-descanso.webp) | ![Tela inicial da 1.1 com o cartão de clima](docs/capturas/14-clima-1.1.webp) |
+<p align="center">
+  <img src="docs/capturas/12-cidade-do-clima.webp" width="640" alt="Busca da cidade do clima com teclado na tela">
+  <br><em>Cidade do clima: busca com o teclado na tela ou detecção pela internet</em>
+</p>
 
 <sub>Os papéis de parede de fotos nas capturas são os do macOS, enviados do meu computador. Eles não fazem parte do repositório.</sub>
 
