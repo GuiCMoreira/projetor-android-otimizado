@@ -8,6 +8,7 @@
 - Descanso de tela no estilo da tela de bloqueio do macOS: data e hora grandes no alto, widgets de clima e do último episódio, "Projetor do Gui" no rodapé. OK sai do descanso e abre o episódio; as outras teclas só voltam.
 - À noite o clima diz "Predomínio de céu limpo" em vez de "Predomínio de sol".
 - Novas permissões: ler a lista "Ver a seguir" (`READ_EPG_DATA` e `READ_TV_LISTINGS`).
+- Ícone da Pluto TV 5.x com o logo inteiro (o "tv" saía cortado).
 
 ## Início 1.1 (26/10/2026)
 - Widget de clima abaixo do relógio (Open-Meteo, sem conta). Cidade detectada pela internet na primeira vez; "Cidade do clima…" no menu Início para buscar outra.

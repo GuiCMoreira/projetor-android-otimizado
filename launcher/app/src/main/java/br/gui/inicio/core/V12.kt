@@ -13,8 +13,11 @@ object IconStyle {
     /** A partir de quantos pontos opacos (de 12) o ícone é tratado como quadrado cheio. */
     private const val MIN_OPAQUE = 9
 
-    /** Ajuste fino para apps cujo ícone adaptativo destoa do iPhone (a Netflix desenha um N enorme). */
-    private val FOREGROUND_SCALE = mapOf("com.netflix.mediaclient" to 0.8f)
+    /**
+     * Ajuste fino para ícones adaptativos cujo logo passa da área segura: a Netflix desenha um N enorme e a Pluto 5.x
+     * para TV corta o "tv".
+     */
+    private val FOREGROUND_SCALE = mapOf("com.netflix.mediaclient" to 0.8f, "tv.pluto.android" to 0.8f)
 
     /** 12 pontos a 2 px da borda, em 1/4, 1/2 e 3/4 de cada lado (longe dos cantos arredondados). */
     fun edgeSamples(w: Int, h: Int): List<Pair<Int, Int>> {
