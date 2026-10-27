@@ -4,12 +4,17 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- 1.1: widget de clima (Open-Meteo) e detecção da cidade na primeira vez. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 1.2: ler a lista "Ver a seguir" que os apps de streaming publicam (nível normal, sem pedido na tela). -->
+    <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
+    <!-- Sem esta (confirmada na tela uma vez), o Android só mostra a cada app o que ele mesmo publicou. -->
+    <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
     <!-- Visibilidade de pacotes sem QUERY_ALL_PACKAGES: só apps abríveis e as telas do fabricante. -->
     <queries>
+        <provider android:authorities="android.media.tv" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />

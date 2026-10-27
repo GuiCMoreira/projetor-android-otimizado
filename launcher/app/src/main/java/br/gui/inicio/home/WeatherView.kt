@@ -47,7 +47,7 @@ class WeatherView(ctx: Context) : LinearLayout(ctx) {
         icon.sky = WeatherCodes.sky(weather.code)
         icon.isDay = weather.isDay
         temp.text = "${weather.temp}°"
-        condition.text = WeatherCodes.describe(weather.code)
+        condition.text = WeatherCodes.describe(weather.code, weather.isDay)
         val old = nowMs - updatedAt > 2 * 60 * 60_000L
         val suffix = if (old) "  ·  atualizado às ${HOUR.format(Date(updatedAt))}" else ""
         details.text = "${city.name}  ·  máx ${weather.max}°  mín ${weather.min}°$suffix"

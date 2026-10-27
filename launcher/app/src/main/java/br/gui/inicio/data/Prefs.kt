@@ -37,6 +37,11 @@ class Prefs(ctx: Context) {
         get() = int(K_SCREENSAVER, Screensaver.DEFAULT)
         set(v) { sp.edit().putInt(K_SCREENSAVER, v).apply() }
 
+    /** O pedido de acesso à lista "Ver a seguir" já apareceu uma vez (não insistimos). */
+    var askedTvListings: Boolean
+        get() = runCatching { sp.getBoolean(K_ASKED_TV, false) }.getOrDefault(false)
+        set(v) { sp.edit().putBoolean(K_ASKED_TV, v).apply() }
+
     var weatherCity: City?
         get() = City.parse(string(K_CITY))
         set(v) { sp.edit().putString(K_CITY, v?.serialize()).apply() }
@@ -77,6 +82,7 @@ class Prefs(ctx: Context) {
         const val K_WALLPAPER = "wallpaper"
         const val K_ROTATE = "wallpaper_rotate_minutes"
         const val K_SCREENSAVER = "screensaver_minutes"
+        const val K_ASKED_TV = "asked_tv_listings"
         const val K_CITY = "weather_city"
         const val K_WEATHER = "weather_json"
         const val K_WEATHER_AT = "weather_at"

@@ -63,7 +63,7 @@ class AppRepository(private val ctx: Context) {
     fun iconBitmap(entry: AppEntry, size: Int): Bitmap = Guard.run({ placeholder(size) }) {
         val icon = entry.info.loadIcon(pm)
         val banner = if (icon !is AdaptiveIconDrawable && icon.intrinsicWidth in 1 until size / 2) entry.info.loadBanner(pm) else null
-        if (banner != null) IconFactory.banner(banner, size) else IconFactory.app(icon, size)
+        if (banner != null) IconFactory.banner(banner, size) else IconFactory.app(icon, size, entry.pkg)
     }
 
     /** Ícone genérico para quando o ícone do app falha ao carregar ou desenhar. */

@@ -77,7 +77,8 @@ class WallpaperLoader(private val ctx: Context) {
         }
     }
 
-    private fun decodeCover(open: () -> InputStream, w: Int, h: Int, rotation: Int = 0): Bitmap? {
+    /** Decodifica já no tamanho [w] x [h], em recorte central. Também serve às capas do "Continuar assistindo". */
+    fun decodeCover(open: () -> InputStream, w: Int, h: Int, rotation: Int = 0): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         open().use { BitmapFactory.decodeStream(it, null, bounds) }
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null

@@ -2,6 +2,7 @@ package br.gui.inicio.home
 
 import android.app.Activity
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.Bitmap
 import android.graphics.drawable.TransitionDrawable
 import android.os.Handler
 import android.os.Looper
@@ -9,6 +10,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -28,8 +30,10 @@ import br.gui.inicio.core.Options
 import br.gui.inicio.core.City
 import br.gui.inicio.core.Screensaver
 import br.gui.inicio.core.WakeKey
+import br.gui.inicio.core.WatchNextItem
+import br.gui.inicio.core.WatchNextList
 import br.gui.inicio.core.WeatherSchedule
-import br.gui.inicio.core.WeatherCodes
+import br.gui.inicio.data.WatchNextRepository
 import br.gui.inicio.data.WeatherRepository
 import br.gui.inicio.settings.CityActivity
 import br.gui.inicio.core.WallpaperChoice
@@ -56,6 +60,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /** Tela inicial estilo macOS. Nada roda com ela oculta: receptores ligados em onStart e desligados em onStop. */
 class HomeActivity : Activity() {
@@ -74,6 +79,10 @@ class HomeActivity : Activity() {
     private val io: ExecutorService = Executors.newSingleThreadExecutor()
     /** Rede do clima em fila própria: DNS sem resposta não segura o Dock nem o papel de parede. */
     private val net: ExecutorService = Executors.newSingleThreadExecutor()
+    /** Capas do "Continuar assistindo" em fila própria, para não esperar atrás do clima. */
+    private val media: ExecutorService = Executors.newSingleThreadExecutor()
+    private lateinit var watchNext: WatchNextRepository
+    private lateinit var watchRow: WatchNextRow
     private var loadedChoice: WallpaperChoice? = null
     private var dockLoaded = false
     private lateinit var weatherView: WeatherView
@@ -82,6 +91,13 @@ class HomeActivity : Activity() {
     private val main = Handler(Looper.getMainLooper())
     private val startScreensaver = Runnable { enterScreensaver() }
     private var weatherLoading = false
+    private var watchLoading = false
+    private var watchCards: List<WatchNextCard> = emptyList()
+    private var postersLoading = false
+    private val posterFailedAt = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    /** Espera cada capa com prazo; o download roda em [posterIo], onde uma conexão presa não segura as próximas. */
+    private val posterWait: ExecutorService = Executors.newSingleThreadExecutor()
+    private val posterIo: ExecutorService = Executors.newCachedThreadPool()
     private var weatherAttemptMs = 0L
     private var weatherAttemptCity: City? = null
     /** Telas abertas pelo menu "Início" devolvem o foco ao Dock na volta (e não à barra). */
@@ -113,9 +129,21 @@ class HomeActivity : Activity() {
         wallpaperView = ImageView(this).apply { scaleType = ImageView.ScaleType.CENTER_CROP }
         root.addView(wallpaperView, FrameLayout.LayoutParams(match, match))
         clock = ClockView(this)
-        root.addView(clock, FrameLayout.LayoutParams(match, wrap, Gravity.TOP).apply { topMargin = Theme.si(170f) })
+        root.addView(clock, FrameLayout.LayoutParams(wrap, wrap, Gravity.TOP or Gravity.START).apply {
+            topMargin = Theme.si(TOP_ROW)
+            leftMargin = Theme.si(SIDE)
+        })
+        // Clima no canto superior direito, espelhando o relógio: mesmo topo e mesma margem lateral.
         weatherView = WeatherView(this)
-        root.addView(weatherView, FrameLayout.LayoutParams(wrap, wrap, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = Theme.si(520f) })
+        root.addView(weatherView, FrameLayout.LayoutParams(wrap, wrap, Gravity.TOP or Gravity.END).apply {
+            topMargin = Theme.si(TOP_ROW)
+            rightMargin = Theme.si(SIDE)
+        })
+        watchRow = WatchNextRow(this)
+        root.addView(watchRow, FrameLayout.LayoutParams(wrap, wrap, Gravity.TOP or Gravity.START).apply {
+            topMargin = Theme.si(400f)
+            leftMargin = Theme.si(SIDE)
+        })
         menuBar = MenuBarView(this, ::onBarItem)
         root.addView(menuBar, FrameLayout.LayoutParams(match, Theme.si(56f), Gravity.TOP))
         dock = DockView(this)
@@ -132,11 +160,15 @@ class HomeActivity : Activity() {
         root.addView(screensaver, FrameLayout.LayoutParams(match, match))
         setContentView(root)
         weather = WeatherRepository(prefs)
+        watchNext = WatchNextRepository(this, loader)
 
         status = StatusMonitor(this) { wifi, bt -> menuBar.setStatus(wifi, bt) }
-        dock.onUp = { menuBar.focusFirst() }
+        // Ordem vertical do foco: barra, "Continuar assistindo" (se houver), Dock.
+        dock.onUp = { if (watchRow.hasItems) watchRow.focus() else menuBar.focusFirst() }
         dock.onFocusItem = ::showTooltip
-        menuBar.onDown = { dock.focusLast() }
+        menuBar.onDown = { if (watchRow.hasItems) watchRow.focus() else dock.focusLast() }
+        watchRow.onUp = { menuBar.focusFirst() }
+        watchRow.onDown = { dock.focusLast() }
         root.viewTreeObserver.addOnGlobalFocusChangeListener { _, now ->
             if (now == null || now.parent !== dock) tooltip.visibility = View.INVISIBLE
         }
@@ -162,6 +194,8 @@ class HomeActivity : Activity() {
         loadWallpaper()
         refreshApps()
         showWeather()
+        refreshWatchNext()
+        askTvListingsOnce()
         scheduleScreensaver()
         if (returnFocusToDock) {
             returnFocusToDock = false
@@ -181,6 +215,9 @@ class HomeActivity : Activity() {
     override fun onDestroy() {
         io.shutdownNow()
         net.shutdownNow()
+        media.shutdownNow()
+        posterWait.shutdownNow()
+        posterIo.shutdownNow()
         super.onDestroy()
     }
 
@@ -197,8 +234,11 @@ class HomeActivity : Activity() {
         val down = event.action == KeyEvent.ACTION_DOWN
         when (wakeKey.handle(down, event.keyCode, event.repeatCount, screensaver.isRunning)) {
             WakeKey.Decision.WAKE -> {
+                val episode = screensaver.episode
                 screensaver.stop()
                 scheduleScreensaver()
+                // OK no descanso abre o episódio do widget; as outras teclas só voltam para a tela inicial.
+                if (episode != null && Screensaver.opensEpisode(event.keyCode)) episode.onOpen()
                 return true
             }
             WakeKey.Decision.CONSUME -> return true // repetições e o UP da tecla que acordou
@@ -324,7 +364,7 @@ class HomeActivity : Activity() {
         }
     }
 
-    private fun locked(): List<ViewGroup> = listOf(menuBar, dock)
+    private fun locked(): List<ViewGroup> = listOf(menuBar, watchRow, dock)
 
     private fun onBarItem(item: BarItem, anchor: View) {
         when (item) {
@@ -384,13 +424,85 @@ class HomeActivity : Activity() {
         }
         val photos = loader.userFiles().map { WallpaperChoice.UserFile(it) }
         val slides = photos.ifEmpty { (0 until WallpaperChoice.GRADIENT_COUNT).map { WallpaperChoice.Gradient(it) } }
-        screensaver.start(slides, weatherLine())
+        screensaver.start(slides, SaverInfo(weather.cached(), prefs.weatherCity?.name, watchCards.firstOrNull()))
     }
 
-    private fun weatherLine(): String {
-        val w = weather.cached() ?: return ""
-        val city = prefs.weatherCity?.name ?: return ""
-        return "${w.temp}°  ·  ${WeatherCodes.describe(w.code)}  ·  $city"
+    /** A lista "Ver a seguir" pede uma permissão que o Android confirma na tela; perguntamos uma única vez. */
+    private fun askTvListingsOnce() {
+        if (checkSelfPermission(TV_LISTINGS) == PackageManager.PERMISSION_GRANTED || prefs.askedTvListings) return
+        prefs.askedTvListings = true
+        requestPermissions(arrayOf(TV_LISTINGS), REQ_TV_LISTINGS)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_TV_LISTINGS && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) refreshWatchNext()
+    }
+
+    /** Lê a lista "Ver a seguir" e as capas fora da tela; a fileira só aparece se houver algo. */
+    private fun refreshWatchNext() {
+        if (watchLoading) return
+        watchLoading = true
+        // Capa decodificada já no tamanho do cartão em foco (12% maior), para não ficar borrada ao crescer.
+        val w = Theme.si(WatchNextRow.CARD_W * WatchNextRow.FOCUS_SCALE)
+        val h = Theme.si(WatchNextRow.CARD_H * WatchNextRow.FOCUS_SCALE)
+        val badgeSize = Theme.si(WatchNextRow.BADGE)
+        media.execute {
+            val cards = Guard.run({ Log.w(TAG, "falha ao ler o Continuar assistindo", it); emptyList() }) {
+                val started = System.currentTimeMillis()
+                val names = HashMap<String, String>()
+                val badges = HashMap<String, Bitmap?>()
+                val items = watchNext.items()
+                watchNext.prunePosters(items, w, h)
+                val missing = ArrayList<WatchNextItem>()
+                items.map { item ->
+                    val app = names.getOrPut(item.pkg) { watchNext.appName(item.pkg) }
+                    val poster = watchNext.cachedPoster(item, w, h)
+                    if (poster == null && item.poster != null) missing += item
+                    WatchNextCard(
+                        title = item.title,
+                        meta = WatchNextList.meta(item, app),
+                        progress = WatchNextList.progress(item),
+                        poster = poster,
+                        badge = badges.getOrPut(item.pkg) { watchNext.badge(item.pkg, badgeSize) },
+                    ) { watchNext.open(item) }
+                }.also {
+                    Log.i(TAG, "Continuar assistindo: ${it.size} itens em ${System.currentTimeMillis() - started} ms, ${missing.size} capas a baixar")
+                    runOnUiThread { downloadPosters(missing, w, h) }
+                }
+            }
+            runOnUiThread {
+                watchLoading = false
+                if (!isDestroyed) {
+                    watchCards = cards
+                    watchRow.setItems(cards)
+                }
+            }
+        }
+    }
+
+    /**
+     * Fase 2 da fileira: baixa as capas que faltam, cada uma com prazo total de [POSTER_DEADLINE_MS] (o tempo-limite
+     * da conexão não cobre DNS nem um app que não responde). Se alguma chegou, a fileira é relida, já com ela.
+     * Capa que falhou só é tentada de novo depois de 10 min.
+     */
+    private fun downloadPosters(missing: List<WatchNextItem>, w: Int, h: Int) {
+        val now = System.currentTimeMillis()
+        val todo = missing.filter { (posterFailedAt[it.poster] ?: 0L) + POSTER_RETRY_MS < now }
+        if (postersLoading || todo.isEmpty() || isDestroyed) return
+        postersLoading = true
+        posterWait.execute {
+            var any = false
+            for (item in todo) {
+                val job = posterIo.submit<Boolean> { watchNext.downloadPoster(item, w, h) }
+                val ok = Guard.run({ job.cancel(true); false }) { job.get(POSTER_DEADLINE_MS, TimeUnit.MILLISECONDS) }
+                if (ok) any = true else item.poster?.let { posterFailedAt[it] = System.currentTimeMillis() }
+            }
+            runOnUiThread {
+                postersLoading = false
+                if (any && !isDestroyed) refreshWatchNext()
+            }
+        }
     }
 
     /** Mostra o clima guardado na hora; se estiver velho, busca de novo em segundo plano (no máximo a cada 10 min). */
@@ -433,6 +545,13 @@ class HomeActivity : Activity() {
     private companion object {
         const val TAG = "Inicio"
         private const val FADE_MS = 1000
+        /** Topo do relógio e do clima, e a margem lateral comum a relógio, clima e fileira (px de uma tela 1920). */
+        private const val TOP_ROW = 110f
+        private const val SIDE = 110f
+        private const val POSTER_DEADLINE_MS = 15_000L
+        private const val POSTER_RETRY_MS = 10 * 60_000L
+        private const val TV_LISTINGS = "android.permission.READ_TV_LISTINGS"
+        private const val REQ_TV_LISTINGS = 12
         const val BLUE_TOP = 0xFF3A7BFD.toInt()
         const val BLUE_BOTTOM = 0xFF1F4FD8.toInt()
         const val GRAY_TOP = 0xFF9A9CA3.toInt()
