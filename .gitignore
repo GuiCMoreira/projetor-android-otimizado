@@ -1,5 +1,7 @@
 .superpowers/
-backup/apk/
+# Backups e dumps do aparelho: têm número de série, Android ID e endereço Bluetooth
+backup/
+diagnostico/getprop.txt
 *.keystore
 *.jks
 launcher/build/
