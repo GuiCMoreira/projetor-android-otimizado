@@ -59,6 +59,13 @@ object Theme {
         cornerRadius = s(radiusPx)
     }
 
+    /** Contorno branco de foco, sem preenchimento. */
+    fun ring(radius: Float, width: Float) = GradientDrawable().apply {
+        setColor(Color.TRANSPARENT)
+        setStroke(Math.round(width).coerceAtLeast(1), Color.WHITE)
+        cornerRadius = radius
+    }
+
     fun oval(color: Int) = GradientDrawable().apply {
         shape = GradientDrawable.OVAL
         setColor(color)

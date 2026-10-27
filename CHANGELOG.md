@@ -1,5 +1,14 @@
 # Changelog
 
+## Início 1.2 (26/10/2026)
+- Fileira "Continuar assistindo" com o que você estava vendo na Pluto TV, Crunchyroll e YouTube (lista "Ver a seguir" do Android TV): capa, progresso, temporada, episódio e quanto falta. OK abre direto no episódio, no ponto em que parou. A Netflix deste aparelho não publica nessa lista.
+- Capas guardadas no aparelho: depois da primeira vez, a fileira aparece em menos de meio segundo.
+- Relógio e data no canto superior esquerdo e clima no direito, alinhados com a fileira.
+- Ícones: apps com ícone antigo (logo sobre fundo branco) passam a preencher o quadrado inteiro com a própria cor (Pluto TV, Crunchyroll, Miracast, Gerenciador); N da Netflix em tamanho médio. Vale também para apps instalados depois.
+- Descanso de tela no estilo da tela de bloqueio do macOS: data e hora grandes no alto, widgets de clima e do último episódio, "Projetor do Gui" no rodapé. OK sai do descanso e abre o episódio; as outras teclas só voltam.
+- À noite o clima diz "Predomínio de céu limpo" em vez de "Predomínio de sol".
+- Novas permissões: ler a lista "Ver a seguir" (`READ_EPG_DATA` e `READ_TV_LISTINGS`).
+
 ## Início 1.1 (26/10/2026)
 - Widget de clima abaixo do relógio (Open-Meteo, sem conta). Cidade detectada pela internet na primeira vez; "Cidade do clima…" no menu Início para buscar outra.
 - Papel de parede que troca sozinho entre as fotos enviadas (a cada 1, 3 ou 6 horas, ou 1 vez por dia), com esmaecimento.

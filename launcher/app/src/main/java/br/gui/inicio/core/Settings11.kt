@@ -26,6 +26,11 @@ object Screensaver {
     /** Minutos sem tecla até o descanso de tela (0 = desligado). */
     val OPTIONS = listOf(0, 5, 10, 15, 30)
     const val DEFAULT = 5
+
+    /** OK, Enter e o Enter do teclado numérico: acordam e já abrem o episódio do widget. */
+    private val CONFIRM = setOf(23, 66, 160)
+
+    fun opensEpisode(keyCode: Int): Boolean = keyCode in CONFIRM
 }
 
 object Volume {

@@ -19,7 +19,10 @@ start=x.rfind("<node",0,i)
 # primeiro texto não vazio do nó focado ou de dentro dele (linhas do launcher guardam o texto num filho)
 for t in re.findall(r"text=\"([^\"]*)\"", x[start:start+4000]):
     if t: print(t); break
-else: print("")'
+else:
+    # cartões de imagem não têm texto: vale a descrição do próprio nó
+    d=re.search(r"content-desc=\"([^\"]*)\"", x[start:i+20])
+    print(d.group(1) if d else "")'
 }
 
 # ok "Texto esperado": aperta OK só se a tela for do launcher e o item focado contiver o texto.
@@ -31,4 +34,6 @@ ok() {
   tecla DPAD_CENTER
 }
 
-inicio() { $D shell am start -n br.gui.inicio/.home.HomeActivity >/dev/null; sleep 2; }
+# Abre pelo mesmo caminho do botão Início (FallbackHome do fabricante). Aberta direto pelo componente, logo
+# depois de um force-stop, o gerenciador de memória do fabricante (com.sstar.systemcontrol) pode fechá-la.
+inicio() { $D shell am start -a android.intent.action.MAIN -c android.intent.category.HOME >/dev/null; sleep 3; }

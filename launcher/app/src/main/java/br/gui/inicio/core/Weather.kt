@@ -22,9 +22,10 @@ object WeatherCodes {
         else -> Sky.CLOUDY
     }
 
-    fun describe(code: Int): String = when (code) {
+    /** [isDay] falso troca o "sol" do código 1 (à noite o ícone já é a lua). */
+    fun describe(code: Int, isDay: Boolean = true): String = when (code) {
         0 -> "Céu limpo"
-        1 -> "Predomínio de sol"
+        1 -> if (isDay) "Predomínio de sol" else "Céu quase limpo"
         2 -> "Parcialmente nublado"
         3 -> "Nublado"
         45, 48 -> "Neblina"

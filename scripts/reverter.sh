@@ -35,3 +35,6 @@ adb -s "$DEV" uninstall br.gui.inicio || true
 $A pm enable com.zeasn.launcher.projector
 $A settings put global nl_curr_home_launcher com.zeasn.launcher.projector
 $A cmd package set-home-activity com.zeasn.launcher.projector/com.zeasn.launcher.ui.WelcomeActivity
+
+# 6. Pluto TV: voltar à compilação padrão do Android (a completa foi feita em 26/10/2026)
+$A cmd package compile -m speed-profile -f tv.pluto.android
