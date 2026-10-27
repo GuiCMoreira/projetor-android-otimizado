@@ -10,19 +10,18 @@ tela() { $D shell dumpsys window | grep mCurrentFocus | sed 's/.*u0 //; s/}//'; 
 
 # Texto do item com foco na tela atual (o próprio nó ou o primeiro texto dentro dele).
 focado() {
+  # Lê só o item em foco e o que está dentro dele (XML de verdade). Item sem texto devolve vazio:
+  # antes, o texto do vizinho vazava e liberava o OK no item errado (o ícone do Bluetooth passou por "Controle").
   $D exec-out uiautomator dump /dev/tty 2>/dev/null | python3 -I -c '
-import re,sys
-x=sys.stdin.read()
-i=x.find("focused=\"true\"")
-if i<0: print(""); sys.exit()
-start=x.rfind("<node",0,i)
-# primeiro texto não vazio do nó focado ou de dentro dele (linhas do launcher guardam o texto num filho)
-for t in re.findall(r"text=\"([^\"]*)\"", x[start:start+4000]):
-    if t: print(t); break
-else:
-    # cartões de imagem não têm texto: vale a descrição do próprio nó
-    d=re.search(r"content-desc=\"([^\"]*)\"", x[start:i+20])
-    print(d.group(1) if d else "")'
+import sys, xml.etree.ElementTree as ET
+x=sys.stdin.read(); x=x[x.find("<?xml"):x.rfind(">")+1]
+try: root=ET.fromstring(x)
+except Exception: print(""); sys.exit()
+node=next((n for n in root.iter("node") if n.get("focused")=="true"), None)
+if node is None: print(""); sys.exit()
+for n in node.iter("node"):
+    if n.get("text"): print(n.get("text")); break
+else: print(node.get("content-desc") or "")'
 }
 
 # ok "Texto esperado": aperta OK só se a tela for do launcher e o item focado contiver o texto.

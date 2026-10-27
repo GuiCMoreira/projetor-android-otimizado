@@ -1,6 +1,7 @@
 package br.gui.inicio.home
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.Bitmap
 import android.graphics.drawable.TransitionDrawable
@@ -25,6 +26,7 @@ import android.widget.Toast
 import br.gui.inicio.apps.AllAppsActivity
 import br.gui.inicio.core.ClockFormat
 import br.gui.inicio.core.Guard
+import br.gui.inicio.core.MemoryClean
 import br.gui.inicio.core.NewAppsTracker
 import br.gui.inicio.core.Options
 import br.gui.inicio.core.City
@@ -527,12 +529,34 @@ class HomeActivity : Activity() {
     private fun openControlCenter(anchor: View) {
         val loc = IntArray(2).also { anchor.getLocationOnScreen(it) }
         val end = resources.displayMetrics.widthPixels - (loc[0] + anchor.width)
-        val panel = ControlCenterPanel(this, shortcuts.available(Shortcuts.CONTROL_CENTER)) { s ->
+        // "Liberar memória" entra antes de "Todos os ajustes", que fecha a grade
+        val items = shortcuts.available(Shortcuts.CONTROL_CENTER).let { it.dropLast(1) + Shortcuts.FREE_MEMORY + it.takeLast(1) }
+        val panel = ControlCenterPanel(this, items) { s ->
             panels.close()
-            shortcuts.open(s)
+            if (s == Shortcuts.FREE_MEMORY) freeMemory() else shortcuts.open(s)
         }
         panels.show(panel, PanelHost.below(end = end), anchor, locked())
     }
+
+    /**
+     * Fecha os apps de uso parados em segundo plano (o Android só deixa fechar o que não está na frente) e mostra
+     * quanto voltou. Só quando a pessoa pede: fechar sempre deixaria a próxima abertura de cada app mais lenta.
+     */
+    private fun freeMemory() {
+        val am = getSystemService(ActivityManager::class.java)
+        io.execute {
+            val before = availableKb(am)
+            Guard.run({ Log.w(TAG, "falha ao liberar memória", it) }) {
+                MemoryClean.targets(repo.launchable().map { it.pkg }, packageName).forEach { am.killBackgroundProcesses(it) }
+            }
+            Thread.sleep(1500) // o sistema leva um instante para devolver a memória
+            val message = MemoryClean.message(before, availableKb(am))
+            runOnUiThread { if (!isDestroyed) Toast.makeText(this, message, Toast.LENGTH_SHORT).show() }
+        }
+    }
+
+    private fun availableKb(am: ActivityManager): Long =
+        Guard.run({ 0L }) { ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }.availMem / 1024 }
 
     private fun openCalendar(anchor: View) {
         val panel = CalendarPanel(this, LocalDate.now()) {
