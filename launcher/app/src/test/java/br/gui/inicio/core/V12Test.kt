@@ -47,6 +47,12 @@ class V12Test {
     /** A Pluto 5.x para TV tem ícone adaptativo com o logo maior que a área segura: o "tv" saía cortado. */
     @Test fun plutoLogoFitsTheSquare() = assertEquals(0.8f, IconStyle.foregroundScale("tv.pluto.android"), 0f)
 
+    /** HBO Max e Stremio também desenham o logo maior que a área segura do ícone adaptativo. */
+    @Test fun hboAndStremioLogosFitTheSquare() {
+        assertEquals(0.9f, IconStyle.foregroundScale("com.wbd.stream"), 0f)
+        assertEquals(0.9f, IconStyle.foregroundScale("com.stremio.one"), 0f)
+    }
+
     // Continuar assistindo
     private fun item(
         title: String,
