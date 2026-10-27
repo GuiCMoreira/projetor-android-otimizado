@@ -12,6 +12,7 @@
 - Ícones da HBO Max e do Stremio sem cortes: o logo da HBO encostava nas bordas e o losango do Stremio saía cortado nas pontas.
 - "Continuar assistindo" mostra no máximo 4 blocos: um 5º sairia cortado na borda da tela e o foco iria para fora dela.
 - Central de Controle: bloco "Liberar memória", que fecha os apps parados em segundo plano (nunca a tela inicial, o sistema ou o projetor) e mostra quanto voltou. No teste, a memória livre foi de 176 MB para 343 MB. Bom para usar antes de abrir apps pesados como HBO Max e Stremio.
+- Descanso de tela: nova opção de 2 minutos parado (menu Início > Descanso de tela). Ele só aparece na tela inicial, nunca dentro de um app.
 
 ## Início 1.1 (26/10/2026)
 - Widget de clima abaixo do relógio (Open-Meteo, sem conta). Cidade detectada pela internet na primeira vez; "Cidade do clima…" no menu Início para buscar outra.

@@ -510,6 +510,40 @@ programado do projetor.
 
 </details>
 
+<details>
+<summary><strong>Netflix com o erro -1007, e o atalho escondido que virava as setas em volume</strong></summary>
+
+<br>
+
+A Netflix que vem de fábrica (8.87, de abril de 2025) passou a mostrar "Não foi possível acessar
+o serviço Netflix (-1007)". Rede e DNS estavam certos: o servidor recusava a versão antiga.
+Atualizei para a 9.89 (APKMirror, mesmo certificado da de fábrica). A versão para TV
+(`com.netflix.ninja`) não serve: este projetor não tem certificação da Netflix, e ela trava ou
+diz que o aparelho não é compatível.
+
+A 9.89 é a versão de celular e não desenha foco. Pior: o firmware tem um ajuste escondido no
+`framework.jar` que simula o foco na Netflix procurando botões por IDs fixos da 8.87. Na 9.89 ele
+se perde e as setas do controle passam a mudar o volume. Ele liga pela propriedade
+`sys.nl.netflix.simulate.focus.control`, lida quando a base dos apps inicia. O que resolveu de
+verdade foi usar o mouse aéreo do controle, que dispensa o foco.
+
+</details>
+
+<details>
+<summary><strong>HBO Max e Stremio: funcionaram, e eu desinstalei</strong></summary>
+
+<br>
+
+A HBO Max para TV é recusada pelo servidor (o mesmo problema de certificação). A de celular
+7.0.0.82 funciona com o mouse aéreo, em 768x384 por causa da proteção de vídeo básica (Widevine
+L3); a 7.14 trava na escolha de perfil e a 6.10 é recusada. O Stremio instala pela Play Store
+sem drama. Mas os dois voltavam a rodar sozinhos sem ninguém abrir, por gatilhos de inicialização
+e notificação: uns 46 MB ocupados o tempo todo num aparelho que trabalha com 250 MB livres. Como
+eu não ia usar, desinstalei. App instalado e parado só ocupa armazenamento; o problema é app que
+acorda sozinho.
+
+</details>
+
 ---
 
 ## Adaptar para o seu aparelho
@@ -636,7 +670,7 @@ fica centralizado sobre o branco. Assim, app instalado depois também fica bonit
 
 ## Testes
 
-97 testes da lógica pura, sem aparelho e sem emulador:
+106 testes da lógica pura, sem aparelho e sem emulador:
 
 ```bash
 cd launcher && ./gradlew :app:testDebugUnitTest
