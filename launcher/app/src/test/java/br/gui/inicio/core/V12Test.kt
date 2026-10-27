@@ -41,8 +41,11 @@ class V12Test {
 
     @Test fun netflixGetsSmallerLetter() {
         assertEquals(0.8f, IconStyle.foregroundScale("com.netflix.mediaclient"), 0f)
-        assertEquals(1f, IconStyle.foregroundScale("tv.pluto.android"), 0f)
+        assertEquals(1f, IconStyle.foregroundScale("com.crunchyroll.crunchyroid"), 0f)
     }
+
+    /** A Pluto 5.x para TV tem ícone adaptativo com o logo maior que a área segura: o "tv" saía cortado. */
+    @Test fun plutoLogoFitsTheSquare() = assertEquals(0.8f, IconStyle.foregroundScale("tv.pluto.android"), 0f)
 
     // Continuar assistindo
     private fun item(

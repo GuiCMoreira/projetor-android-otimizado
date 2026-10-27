@@ -38,3 +38,6 @@ $A cmd package set-home-activity com.zeasn.launcher.projector/com.zeasn.launcher
 
 # 6. Pluto TV: voltar à compilação padrão do Android (a completa foi feita em 26/10/2026)
 $A cmd package compile -m speed-profile -f tv.pluto.android
+
+# 7. Pluto TV: voltar para a 17.2 da Play Store (em 27/10/2026 ficou a 5.65.0-leanback, mais fluida)
+bash "$DIR/scripts/trocar-pluto.sh" atual
