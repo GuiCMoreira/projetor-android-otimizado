@@ -9,6 +9,7 @@
 - À noite o clima diz "Predomínio de céu limpo" em vez de "Predomínio de sol".
 - Novas permissões: ler a lista "Ver a seguir" (`READ_EPG_DATA` e `READ_TV_LISTINGS`).
 - Ícone da Pluto TV 5.x com o logo inteiro (o "tv" saía cortado).
+- Ícones da HBO Max e do Stremio sem cortes: o logo da HBO encostava nas bordas e o losango do Stremio saía cortado nas pontas.
 - "Continuar assistindo" mostra no máximo 4 blocos: um 5º sairia cortado na borda da tela e o foco iria para fora dela.
 - Central de Controle: bloco "Liberar memória", que fecha os apps parados em segundo plano (nunca a tela inicial, o sistema ou o projetor) e mostra quanto voltou. No teste, a memória livre foi de 176 MB para 343 MB. Bom para usar antes de abrir apps pesados como HBO Max e Stremio.
 
