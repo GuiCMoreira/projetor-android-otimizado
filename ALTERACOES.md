@@ -38,5 +38,6 @@ Hashes SHA-256 dos APKs salvos:
 | 13 | Launcher Início atualizado para a 1.1 (clima, descanso de tela, troca de fundo, volume, timer). Nova permissão: internet | `adb install -r apk/Inicio-1.1.apk` | `adb install -r -d apk/Inicio-1.0.apk` (volta para a 1.0) |
 | 14 | Launcher Início atualizado para a 1.2 (Continuar assistindo, ícones, relógio à esquerda, descanso estilo macOS). Novas permissões: `READ_EPG_DATA` e `READ_TV_LISTINGS` (concedida pelo próprio firmware na instalação) | `adb install -r apk/Inicio-1.2.apk` | `adb install -r -d apk/Inicio-1.1.apk` (volta para a 1.1) |
 | 15 | Pluto TV compilada por completo (antes: só a parte mais usada). Navegação com menos travadas (quadros travados de 37-55% para 22-47%); abertura igual, uns 12 s | `cmd package compile -m speed -f tv.pluto.android` | `cmd package compile -m speed-profile -f tv.pluto.android` (atualização da Pluto pela Play Store também desfaz) |
+| 16 | Projectivy Launcher (`com.spocky.projengmenu` 4.72, da Play Store) desinstalado a pedido do dono: a Início faz o que ele fazia | `adb uninstall com.spocky.projengmenu` | reinstalar pela Play Store |
 
 O launcher do fabricante continua instalado, mas desativado. Conferido após reiniciar: a tela padrão continua sendo o Início.
