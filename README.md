@@ -13,7 +13,7 @@ projetores e TVs Android genéricos com menu próprio do fabricante.
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
 ![Sem bibliotecas](https://img.shields.io/badge/depend%C3%AAncias-nenhuma-1B7A43?style=flat-square)
 ![ADB](https://img.shields.io/badge/ADB-pela%20rede-555?style=flat-square)
-![97 testes](https://img.shields.io/badge/testes-97%20passando-00DD16?style=flat-square)
+![128 testes](https://img.shields.io/badge/testes-128%20passando-00DD16?style=flat-square)
 ![MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-8A19D6?style=flat-square)
 
 ![Tela inicial do launcher Início: relógio à esquerda, clima à direita, fileira "Continuar assistindo" e Dock de vidro](docs/capturas/01-inicio.webp)
@@ -309,6 +309,9 @@ menu lateral e macOS. A escolhida foi a do macOS. A especificação de cada vers
 | **Continuar assistindo** | Lê a lista "Ver a seguir" que Pluto TV, Crunchyroll e YouTube publicam no Android TV. OK abre direto no episódio, no ponto em que parou |
 | **Descanso de tela** | No estilo da tela de bloqueio do macOS: data e hora grandes, widgets de clima e do último episódio, fotos com zoom lento |
 | **Ícones** | Ícones antigos (logo sobre fundo branco) passam a preencher o quadrado com a própria cor, como no iPhone |
+| **Mouse aéreo** | O item sob o ponteiro ganha o foco, com a lupa do Dock, como passar o mouse no Mac. O tremor da mão parada não rouba o foco de quem usa as setas, e a roda rola as fileiras |
+| **Pouca memória** | Quando o Android avisa que a memória está acabando e a tela inicial está escondida, ela solta o papel de parede e as capas (no teste: de 76 MB para 37 MB) e recarrega na volta |
+| **Tela de emergência** | Se o Início fechar sozinho 3 vezes em 5 minutos, abre uma tela simples com "Tentar de novo", os Ajustes do Android e a lista de apps. Sem ela, com o launcher do fabricante desativado, o projetor ficaria sem tela inicial |
 
 O que ele **não** faz, de propósito: nada roda em segundo plano. Sem serviço, sem sincronização,
 sem vídeo de fundo. Com a tela parada, o processador fica em 0%.
@@ -563,7 +566,7 @@ O tutorial vale para qualquer Android TV ou projetor Android. O que muda de apar
 ```bash
 cd launcher
 cp keystore.properties.example keystore.properties   # e preencha (veja abaixo)
-./gradlew :app:testDebugUnitTest                       # 97 testes, sem aparelho
+./gradlew :app:testDebugUnitTest                       # 128 testes, sem aparelho
 ./gradlew :app:assembleRelease
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
@@ -670,7 +673,7 @@ fica centralizado sobre o branco. Assim, app instalado depois também fica bonit
 
 ## Testes
 
-106 testes da lógica pura, sem aparelho e sem emulador:
+128 testes da lógica pura, sem aparelho e sem emulador:
 
 ```bash
 cd launcher && ./gradlew :app:testDebugUnitTest
@@ -685,6 +688,8 @@ Eles defendem decisões, não só o caminho feliz:
 - o mesmo episódio publicado duas vezes, com título e capa diferentes, aparece uma vez só
 - link de episódio para outro app é recusado
 - à noite o clima não diz "Predomínio de sol"
+- o ponteiro parado sobre um ícone não puxa o foco de volta depois que as setas o levaram para outro
+- 3 quedas em 5 minutos abrem a tela de emergência; quedas antigas e relógio que volta no tempo não contam
 
 No aparelho, cada versão teve um roteiro escrito antes do teste e executado com capturas:
 [docs/qa](docs/qa).
@@ -717,6 +722,10 @@ suporte a Android anterior ao 12.
 
 ## Créditos e avisos
 
+- Ideias da versão 1.3 (foco pelo mouse aéreo, aviso de pouca memória e volta automática quando o launcher
+  cai) vieram da leitura de dois projetos parecidos:
+  [free-my-tv](https://github.com/simbasjungles/free-my-tv) e
+  [cleanyourtv](https://github.com/Gathin23/cleanyourtv). O código daqui foi escrito do zero.
 - Fonte [Inter](https://rsms.me/inter/), de Rasmus Andersson, licença SIL OFL 1.1
   ([docs/LICENCA-INTER.txt](docs/LICENCA-INTER.txt)).
 - Clima: [Open-Meteo](https://open-meteo.com). Cidade pelo IP: [GeoJS](https://www.geojs.io).
