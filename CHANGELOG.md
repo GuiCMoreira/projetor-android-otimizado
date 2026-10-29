@@ -13,6 +13,8 @@
 - `sem-segundo-plano.sh`: lista os apps rodando sem estar na tela e impede um app de rodar em segundo plano sem desinstalar (`cmd appops ... RUN_ANY_IN_BACKGROUND ignore`, gravado para valer depois de reiniciar).
 - `medir-launcher.sh` mede o uso real: abertura do zero e volta de um app pelo botão Início (mediana), fluidez nas setas (quadros travados e percentis), processador com a tela parada e memória 2 minutos depois, sem deixar o descanso de tela entrar na medida.
 - `avaliar-liberar-memoria.sh`: compara, depois de usar um app, a memória livre e o tempo para reabrir com e sem fechar os apps parados (foi o que mostrou que o botão não ajudava).
+- `desativar.sh`: desativa um app com segurança. Recusa quem fornece entrada de vídeo (o HDMI roda dentro de `com.sstar.systemcontrol`, o gerenciador de memória do fabricante), a tela inicial e as peças do sistema, e pede confirmação para quem tem permissão de entrada de vídeo.
+- `auditar-privacidade.sh`: só leitura. Assistente de voz, quem pode usar e quem usou microfone e localização, telemetria conhecida e acessos especiais.
 - Correções da revisão: `qa-seguro.sh` acha o projetor também quando carregado com `source`; o localizador tem tempo limite (uma conexão antiga podia travar tudo) e desconecta o que não for o projetor; `conferir.sh` diz "sem conexão" (saída 2) em vez de acusar diferenças falsas; `reverter.sh` e `medir-pluto.sh` param se não acharem o projetor; `medir-launcher.sh` aceita o jeito antigo de chamar.
 
 ## Início 1.3 (29/10/2026)

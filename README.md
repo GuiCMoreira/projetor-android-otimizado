@@ -625,6 +625,8 @@ pensadas para 1920x1080 e escalam para outras resoluções.
 | [`scripts/reverter.sh`](scripts/reverter.sh) | Desfaz tudo: reativa apps, devolve o launcher do fabricante, volta a Pluto da Play |
 | [`scripts/enviar-wallpaper.sh`](scripts/enviar-wallpaper.sh) | Recorta uma foto em 1920x1080 no computador e manda para o launcher |
 | [`scripts/medir-launcher.sh`](scripts/medir-launcher.sh) | O launcher como ele é usado: abrir do zero, voltar de um app, fluidez nas setas, processador parado e memória estável |
+| [`scripts/desativar.sh`](scripts/desativar.sh) | Desativa um app com segurança: recusa quem fornece o HDMI (e o processo onde ele roda), a tela inicial e o sistema |
+| [`scripts/auditar-privacidade.sh`](scripts/auditar-privacidade.sh) | Só leitura: assistente de voz, quem pode usar e quem usou microfone e localização, telemetria e acessos especiais |
 | [`scripts/conferir.sh`](scripts/conferir.sh) | Confere se a limpeza continua de pé depois de atualização ou reset; `--corrigir` reaplica |
 | [`scripts/sem-segundo-plano.sh`](scripts/sem-segundo-plano.sh) | Lista os apps rodando sem estar na tela e impede um app de rodar em segundo plano, sem desinstalar |
 | [`scripts/achar-projetor.sh`](scripts/achar-projetor.sh) | Acha o projetor na rede quando o IP muda |
@@ -632,6 +634,15 @@ pensadas para 1920x1080 e escalam para outras resoluções.
 | [`scripts/medir-pluto.sh`](scripts/medir-pluto.sh) | Abertura e quadros travados da Pluto TV ao navegar |
 | [`scripts/trocar-pluto.sh`](scripts/trocar-pluto.sh) | Alterna a Pluto entre a versão leve para TV e a da Play Store |
 | [`scripts/qa-seguro.sh`](scripts/qa-seguro.sh) | Funções de teste por ADB que só apertam OK se a tela e o item em foco forem os esperados |
+
+**Se aparecer uma atualização do sistema:** os atualizadores do fabricante estão desativados, de propósito (a
+atualização vem do mesmo fabricante que entregou o aparelho com adware). Para atualizar, reative os dois, atualize
+pelo menu do fabricante e depois rode `scripts/conferir.sh --corrigir`, que reaplica o que a atualização desfizer.
+O passo a passo está no [ALTERACOES.md](ALTERACOES.md#se-aparecer-uma-atualização-do-sistema).
+
+**Auditoria de privacidade (29/10/2026):** nenhum assistente de voz, nenhum app de telemetria do Google, e só o
+YouTube usou o microfone (busca por voz). Um leitor de notificações configurado de fábrica aponta para um app que
+nem existe no aparelho. Detalhes no [ALTERACOES.md](ALTERACOES.md#auditoria-de-privacidade-29102026-scriptsauditar-privacidadesh-só-leitura).
 
 ## Decisões que não são óbvias
 
