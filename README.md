@@ -642,7 +642,8 @@ O passo a passo está no [ALTERACOES.md](ALTERACOES.md#se-aparecer-uma-atualiza�
 
 **Auditoria de privacidade (29/10/2026):** nenhum assistente de voz, nenhum app de telemetria do Google, e só o
 YouTube usou o microfone (busca por voz). Um leitor de notificações configurado de fábrica aponta para um app que
-nem existe no aparelho. Detalhes no [ALTERACOES.md](ALTERACOES.md#auditoria-de-privacidade-29102026-scriptsauditar-privacidadesh-só-leitura).
+nem existe no aparelho. O descanso de tela do fabricante tinha internet, localização e permissão para desligar o
+aparelho; como o Início tem o próprio descanso, ele foi desativado. Detalhes no [ALTERACOES.md](ALTERACOES.md#auditoria-de-privacidade-29102026-scriptsauditar-privacidadesh-só-leitura).
 
 ## Decisões que não são óbvias
 
