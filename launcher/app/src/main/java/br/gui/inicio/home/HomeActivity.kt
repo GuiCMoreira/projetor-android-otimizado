@@ -17,6 +17,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -27,6 +28,8 @@ import br.gui.inicio.apps.AllAppsActivity
 import br.gui.inicio.core.ClockFormat
 import br.gui.inicio.core.Guard
 import br.gui.inicio.core.MemoryClean
+import br.gui.inicio.core.MemoryTrim
+import br.gui.inicio.core.PointerWake
 import br.gui.inicio.core.NewAppsTracker
 import br.gui.inicio.core.Options
 import br.gui.inicio.core.City
@@ -38,6 +41,8 @@ import br.gui.inicio.core.WeatherSchedule
 import br.gui.inicio.data.WatchNextRepository
 import br.gui.inicio.data.WeatherRepository
 import br.gui.inicio.settings.CityActivity
+import br.gui.inicio.rescue.CrashLog
+import br.gui.inicio.rescue.RescueActivity
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.data.AppEntry
 import br.gui.inicio.data.AppRepository
@@ -55,6 +60,7 @@ import br.gui.inicio.ui.IconFactory
 import br.gui.inicio.ui.MenuEntry
 import br.gui.inicio.ui.MenuPanel
 import br.gui.inicio.ui.PanelHost
+import br.gui.inicio.ui.PointerFocus
 import br.gui.inicio.ui.Theme
 import br.gui.inicio.ui.invalidateTree
 import br.gui.inicio.wallpaper.WallpaperLoader
@@ -106,6 +112,14 @@ class HomeActivity : Activity() {
     private var returnFocusToDock = false
     /** A tecla que tirou do descanso de tela é consumida inteira (descer e subir), para não abrir nada por engano. */
     private val wakeKey = WakeKey()
+    private val pointer = PointerFocus()
+    private val pointerWake = PointerWake()
+    /** Movimento do mouse fora do descanso: só adia o descanso depois de andar de verdade, não com o tremor. */
+    private val pointerActivity = PointerWake()
+    /** O clique que acordou do descanso é engolido inteiro, até soltar o botão, para não abrir o que está embaixo. */
+    private var swallowTouch = false
+    /** Entre onStart e onStop: com a tela à vista, o aviso de pouca memória não solta nada. */
+    private var visible = false
 
     private val timeReceiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context, i: Intent) = tick()
@@ -116,6 +130,15 @@ class HomeActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Caiu 3 vezes em 5 minutos: não tenta de novo, abre a tela de emergência (que não usa nada daqui).
+        if (CrashLog.shouldRescue(this)) {
+            // Se a própria tela de emergência caiu, vai direto para os Ajustes do Android.
+            val rescue = if (CrashLog.rescueFailed(this)) Intent(android.provider.Settings.ACTION_SETTINGS) else Intent(this, RescueActivity::class.java)
+            startActivity(rescue.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            finish()
+            return
+        }
+        CrashLog.homeOpened(this)
         Theme.init(this)
         prefs = Prefs(this)
         repo = AppRepository(this)
@@ -171,6 +194,7 @@ class HomeActivity : Activity() {
         menuBar.onDown = { if (watchRow.hasItems) watchRow.focus() else dock.focusLast() }
         watchRow.onUp = { menuBar.focusFirst() }
         watchRow.onDown = { dock.focusLast() }
+        pointer.onFocusByPointer = { scheduleScreensaver() }
         root.viewTreeObserver.addOnGlobalFocusChangeListener { _, now ->
             if (now == null || now.parent !== dock) tooltip.visibility = View.INVISIBLE
         }
@@ -178,6 +202,7 @@ class HomeActivity : Activity() {
 
     override fun onStart() {
         super.onStart()
+        visible = true
         val time = IntentFilter().apply {
             addAction(Intent.ACTION_TIME_TICK)
             addAction(Intent.ACTION_TIME_CHANGED)
@@ -206,6 +231,7 @@ class HomeActivity : Activity() {
     }
 
     override fun onStop() {
+        visible = false
         unregisterReceiver(timeReceiver)
         unregisterReceiver(packageReceiver)
         status.stop()
@@ -258,6 +284,53 @@ class HomeActivity : Activity() {
         return super.dispatchKeyEvent(event)
     }
 
+    /** Mouse aéreo: foco pelo ponteiro e roda nas fileiras; no descanso de tela, um movimento de verdade acorda. */
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (screensaver.isRunning) {
+            if (event.actionMasked == MotionEvent.ACTION_HOVER_MOVE && pointerWake.moved(event.x, event.y)) wakeFromScreensaver()
+            return true
+        }
+        val moved = event.actionMasked == MotionEvent.ACTION_HOVER_MOVE && pointerActivity.moved(event.x, event.y)
+        if (moved || event.actionMasked == MotionEvent.ACTION_SCROLL) {
+            pointerActivity.reset()
+            scheduleScreensaver()
+        }
+        return pointer.handle(root, event) || super.dispatchGenericMotionEvent(event)
+    }
+
+    /** Clique do mouse: no descanso de tela só acorda (o gesto inteiro é engolido); fora dele, adia o descanso. */
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            swallowTouch = screensaver.isRunning
+            if (swallowTouch) wakeFromScreensaver() else scheduleScreensaver()
+        }
+        if (swallowTouch) {
+            if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) swallowTouch = false
+            return true
+        }
+        return super.dispatchTouchEvent(event)
+    }
+
+    private fun wakeFromScreensaver() {
+        screensaver.stop()
+        scheduleScreensaver()
+    }
+
+    /**
+     * Pouca memória com a tela inicial escondida: solta papel de parede e capas (uns 10 MB) para o sistema não
+     * precisar fechar o Início inteiro. Na volta, onStart recarrega os dois (as capas vêm do cache em disco).
+     */
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (!::root.isInitialized) return
+        if (!MemoryTrim.shouldRelease(level, visible)) return
+        wallpaperView.setImageDrawable(null)
+        loadedChoice = null
+        watchCards = emptyList()
+        watchRow.setItems(emptyList())
+        Log.i(TAG, "pouca memória (nível $level): papel de parede e capas liberados")
+    }
+
     private fun tick() {
         val now = LocalDateTime.now()
         clock.update(now)
@@ -277,7 +350,8 @@ class HomeActivity : Activity() {
             Guard.run({ Log.w(TAG, "falha ao carregar o papel de parede", it) }) {
                 val result = loader.load(choice, m.widthPixels, m.heightPixels)
                 runOnUiThread {
-                    if (isDestroyed) return@runOnUiThread
+                    // Escondida, não ocupa memória com o resultado: o onStart carrega de novo (loadedChoice não mudou).
+                    if (isDestroyed || !visible) return@runOnUiThread
                     val current = wallpaperView.drawable
                     // Só a camada de cima de um esmaecimento anterior: senão cada troca guarda a foto anterior inteira.
                     val old = (current as? TransitionDrawable)?.getDrawable(1) ?: current
@@ -426,6 +500,7 @@ class HomeActivity : Activity() {
         }
         val photos = loader.userFiles().map { WallpaperChoice.UserFile(it) }
         val slides = photos.ifEmpty { (0 until WallpaperChoice.GRADIENT_COUNT).map { WallpaperChoice.Gradient(it) } }
+        pointerWake.reset()
         screensaver.start(slides, SaverInfo(weather.cached(), prefs.weatherCity?.name, watchCards.firstOrNull()))
     }
 
@@ -475,7 +550,7 @@ class HomeActivity : Activity() {
             }
             runOnUiThread {
                 watchLoading = false
-                if (!isDestroyed) {
+                if (!isDestroyed && visible) {
                     watchCards = cards
                     watchRow.setItems(cards)
                 }

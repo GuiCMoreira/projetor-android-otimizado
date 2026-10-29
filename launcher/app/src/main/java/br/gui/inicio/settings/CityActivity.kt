@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -17,6 +18,7 @@ import br.gui.inicio.core.City
 import br.gui.inicio.core.Guard
 import br.gui.inicio.data.Prefs
 import br.gui.inicio.data.WeatherRepository
+import br.gui.inicio.ui.PointerFocus
 import br.gui.inicio.ui.Backdrop
 import br.gui.inicio.ui.Glyph
 import br.gui.inicio.ui.GlyphView
@@ -26,12 +28,17 @@ import java.util.concurrent.Executors
 
 /** Escolha da cidade do clima: busca pelo nome (teclado na tela) ou volta a detectar pela internet. */
 class CityActivity : Activity() {
+    private val pointer = PointerFocus()
     private lateinit var prefs: Prefs
     private lateinit var weather: WeatherRepository
     private lateinit var results: LinearLayout
     private lateinit var status: TextView
     private lateinit var input: EditText
     private val io: ExecutorService = Executors.newSingleThreadExecutor()
+
+    /** Mouse aéreo: o item sob o ponteiro ganha o foco; a roda rola as fileiras. */
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean =
+        pointer.handle(window.decorView, event) || super.dispatchGenericMotionEvent(event)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

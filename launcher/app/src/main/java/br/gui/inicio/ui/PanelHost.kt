@@ -1,7 +1,9 @@
 package br.gui.inicio.ui
 
 import android.content.Context
+import android.annotation.SuppressLint
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -23,6 +25,8 @@ class PanelHost(ctx: Context) : FrameLayout(ctx) {
             it.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
             locked += it
         }
+        // O painel engole os próprios toques; só o clique fora dele chega a [onTouchEvent] e fecha.
+        panel.isClickable = true
         addView(panel, lp)
         panel.alpha = 0f
         panel.animate().alpha(1f).setDuration(120).start()
@@ -37,6 +41,14 @@ class PanelHost(ctx: Context) : FrameLayout(ctx) {
         locked.clear()
         opener?.requestFocus()
         opener = null
+    }
+
+    /** Mouse aéreo: com painel aberto, o clique fora dele fecha o painel em vez de abrir o que está atrás. */
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (panel == null) return false
+        if (event.actionMasked == MotionEvent.ACTION_UP) close()
+        return true
     }
 
     companion object {

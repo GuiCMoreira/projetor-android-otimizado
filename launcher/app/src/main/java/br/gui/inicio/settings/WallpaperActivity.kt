@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewOutlineProvider
+import android.view.MotionEvent
 import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
@@ -18,6 +19,7 @@ import br.gui.inicio.core.Guard
 import br.gui.inicio.core.Rotation
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.data.Prefs
+import br.gui.inicio.ui.PointerFocus
 import br.gui.inicio.ui.Backdrop
 import br.gui.inicio.ui.Theme
 import br.gui.inicio.wallpaper.Gradients
@@ -27,12 +29,17 @@ import java.util.concurrent.Executors
 
 /** Escolha do fundo: 4 degradês desenhados, fotos incluídas e fotos enviadas pelo computador. */
 class WallpaperActivity : Activity() {
+    private val pointer = PointerFocus()
     private lateinit var prefs: Prefs
     private lateinit var loader: WallpaperLoader
     private lateinit var gradientRow: LinearLayout
     private lateinit var photoRow: LinearLayout
     private lateinit var rotationRow: LinearLayout
     private val io: ExecutorService = Executors.newSingleThreadExecutor()
+
+    /** Mouse aéreo: o item sob o ponteiro ganha o foco; a roda rola as fileiras. */
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean =
+        pointer.handle(window.decorView, event) || super.dispatchGenericMotionEvent(event)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

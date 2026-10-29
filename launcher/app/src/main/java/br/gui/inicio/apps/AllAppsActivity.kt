@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.MotionEvent
 import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.ImageView
@@ -22,6 +23,7 @@ import br.gui.inicio.core.NewAppsTracker
 import br.gui.inicio.data.AppEntry
 import br.gui.inicio.data.AppRepository
 import br.gui.inicio.data.Prefs
+import br.gui.inicio.ui.PointerFocus
 import br.gui.inicio.ui.Backdrop
 import br.gui.inicio.ui.MenuEntry
 import br.gui.inicio.ui.MenuPanel
@@ -32,6 +34,7 @@ import java.util.concurrent.Executors
 
 /** "Todos os apps", estilo Launchpad: grade 6 x 3 por página, ponto azul em app novo, menu com Menu ou OK segurado. */
 class AllAppsActivity : Activity() {
+    private val pointer = PointerFocus()
     private lateinit var prefs: Prefs
     private lateinit var repo: AppRepository
     private lateinit var panels: PanelHost
@@ -42,6 +45,10 @@ class AllAppsActivity : Activity() {
     private var page = 0
     private var pageLoading = false // segurar → não pode pular páginas antes de a atual aparecer
     private val pageCount: Int get() = maxOf(1, (apps.size + PAGE - 1) / PAGE)
+
+    /** Mouse aéreo: o item sob o ponteiro ganha o foco; a roda rola as fileiras. */
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean =
+        pointer.handle(window.decorView, event) || super.dispatchGenericMotionEvent(event)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

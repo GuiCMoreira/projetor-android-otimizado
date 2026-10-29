@@ -48,6 +48,7 @@
     </queries>
 
     <application
+        android:name=".InicioApp"
         android:allowBackup="false"
         android:banner="@drawable/banner"
         android:icon="@drawable/ic_app"
@@ -90,5 +91,11 @@
             android:exported="false"
             android:screenOrientation="landscape"
             android:windowSoftInputMode="adjustPan|stateVisible" />
+        <!-- Emergência: aberta pela tela inicial depois de 3 quedas em 5 minutos. -->
+        <activity
+            android:name=".rescue.RescueActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:screenOrientation="landscape" />
     </application>
 </manifest>
