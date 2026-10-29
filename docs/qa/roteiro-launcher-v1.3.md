@@ -23,6 +23,8 @@ Não testado: queda da própria tela de emergência (cair para os Ajustes do And
 
 O ADB não gera "ponteiro passando por cima", só clique. Por isso estes passos são feitos à mão.
 
+Resultado (29/10/2026): o dono executou os 11 passos e todos funcionaram (PASS).
+
 | # | Passo | Esperado |
 |---|---|---|
 | M1 | Na tela inicial, passar o ponteiro devagar pelos ícones da Dock | Cada ícone cresce e mostra o nome ao receber o ponteiro |
