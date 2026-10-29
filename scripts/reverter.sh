@@ -19,7 +19,8 @@ for p in zeasn.open.technical.tv.store \
          com.android.inputmethod.pinyin \
          com.android.printspooler \
          com.uv.droid.uota \
-         com.uv.droid.uotaback; do
+         com.uv.droid.uotaback \
+         com.newlink.screensaver; do
   $A pm enable "$p"
 done
 

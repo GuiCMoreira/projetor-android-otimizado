@@ -50,6 +50,7 @@ Nota sobre a Netflix (27/10/2026): a 9.89 é a versão de celular e não desenha
 | 22 | HBO Max (`com.wbd.stream` 7.0.0.82) e Stremio (`com.stremio.one` 1.12.0) desinstalados a pedido do dono, que não vai usá-los. Mesmo sem abrir, os dois voltavam a rodar sozinhos (gatilhos de inicialização e de notificação): ~36 MB da HBO e ~10 MB do servidor do Stremio ocupados o tempo todo | `adb uninstall com.wbd.stream` e `adb uninstall com.stremio.one` | Stremio pela Play Store; HBO pelo caminho da linha 21 |
 | 23 | Launcher Início atualizado para a 1.3 (mouse aéreo, aviso de pouca memória, tela de emergência após 3 quedas em 5 minutos). Sem permissão nova | `adb install -r apk/Inicio-1.3.apk` | `adb install -r -d apk/Inicio-1.2.apk` (volta para a 1.2) |
 | 24 | Launcher Início atualizado para a 1.4 (descanso de tela desenhado a 20 quadros por segundo, setas de volta na Central de Controle, sem "Liberar memória" e sem "Modo de imagem"). Sai a permissão `KILL_BACKGROUND_PROCESSES` | `adb install -r apk/Inicio-1.4.apk` | `adb install -r -d apk/Inicio-1.3.apk` |
+| 25 | Descanso de tela do fabricante (`com.newlink.screensaver`) desativado: tinha internet, localização, desligar o aparelho e alterar configurações protegidas, e o Início já tem o próprio descanso. Conferido depois: HDMI registrado e a tela de Fontes abre | `scripts/desativar.sh com.newlink.screensaver` | `adb shell pm enable com.newlink.screensaver` |
 
 Nota (29/10/2026): conferido que nenhum pacote desativado fornece entrada de vídeo. O HDMI vem de `com.sstar.tv.inputservice` (ativo). Os atualizadores `com.uv.droid.uota` e `uotaback` têm a permissão `TV_INPUT_HARDWARE`, mas não registram entrada nenhuma.
 
@@ -75,6 +76,7 @@ aparelho com adware. Se um dia quiser atualizar:
   fábrica.
 - Descanso de tela do fabricante (`com.newlink.screensaver`): tem internet, localização, desligar o aparelho e
   alterar configurações protegidas, e está configurado como descanso do sistema. Na prática não roda: o sistema
-  só o chamaria ao dormir, e a tela nunca dorme (`screen_off_timeout` no máximo). Mantido.
+  só o chamaria ao dormir, e a tela nunca dorme (`screen_off_timeout` no máximo). Desativado mesmo assim (linha 25),
+  a pedido do dono: permissões demais para um app que não é usado.
 
 O launcher do fabricante continua instalado, mas desativado. Conferido após reiniciar: a tela padrão continua sendo o Início.
