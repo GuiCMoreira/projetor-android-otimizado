@@ -13,7 +13,7 @@ A=(adb -s "$DEV" shell)
 REMOVIDOS=(com.android.media.module.services com.android.docks)
 # Desativados com pm disable-user (reversão em reverter.sh).
 DESATIVADOS=(zeasn.open.technical.tv.store com.mobisystems.editor.office_registered com.android.inputmethod.pinyin
-  com.android.printspooler com.uv.droid.uota com.uv.droid.uotaback com.zeasn.launcher.projector)
+  com.android.printspooler com.uv.droid.uota com.uv.droid.uotaback com.zeasn.launcher.projector com.newlink.screensaver)
 HOME_PKG=br.gui.inicio
 ANIMACAO=0.5
 
