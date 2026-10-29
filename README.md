@@ -13,7 +13,7 @@ projetores e TVs Android genéricos com menu próprio do fabricante.
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
 ![Sem bibliotecas](https://img.shields.io/badge/depend%C3%AAncias-nenhuma-1B7A43?style=flat-square)
 ![ADB](https://img.shields.io/badge/ADB-pela%20rede-555?style=flat-square)
-![128 testes](https://img.shields.io/badge/testes-128%20passando-00DD16?style=flat-square)
+![127 testes](https://img.shields.io/badge/testes-127%20passando-00DD16?style=flat-square)
 ![MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-8A19D6?style=flat-square)
 
 ![Tela inicial do launcher Início: relógio à esquerda, clima à direita, fileira "Continuar assistindo" e Dock de vidro](docs/capturas/01-inicio.webp)
@@ -132,7 +132,9 @@ do último episódio, e as suas fotos passando com zoom lento. OK sai do descans
 
 - Estar na mesma rede Wi-Fi que o computador.
 - Anotar o IP dele: no meu, Configurações > Rede > Wi-Fi > (sua rede). Aqui vou usar
-  `192.168.2.100`; troque pelo seu.
+  `192.168.2.100`; troque pelo seu. O roteador pode trocar esse IP quando o projetor religa:
+  [`scripts/achar-projetor.sh`](scripts/achar-projetor.sh) acha o projetor na rede, e os outros scripts usam ele
+  quando você não passa o endereço.
 
 **Uma regra para tudo o que vem a seguir:** antes de mudar qualquer coisa, salve o estado atual.
 Cada alteração deste tutorial tem o comando de volta anotado em [ALTERACOES.md](ALTERACOES.md), e
@@ -302,12 +304,12 @@ menu lateral e macOS. A escolhida foi a do macOS. A especificação de cada vers
 | **Barra de menu de vidro** | "Início" com o menu do launcher, Bluetooth, Wi-Fi, Central de Controle e data e hora. Tudo navegável pelo controle |
 | **Dock de vidro** | Até 8 favoritos fixos. O ícone em foco cresce 30% e os vizinhos se afastam, como no Mac. Um app novo nunca entra sozinho |
 | **Todos os apps** | Grade em páginas, ponto azul em app recém-instalado, menu para adicionar ao Dock |
-| **Central de Controle** | Volume de verdade (← →), foco automático, keystone, zoom, modo de imagem, projeção, fontes, o desligamento programado do próprio projetor e **Liberar memória**, que fecha os apps parados antes de abrir um app pesado (no teste: de 176 MB para 343 MB livres) |
+| **Central de Controle** | Volume de verdade (← →), foco automático, keystone, zoom, projeção, som, fontes, o desligamento programado do próprio projetor e todos os ajustes |
 | **Calendário** | Mês inteiro na barra, como no macOS |
 | **Clima** | Open-Meteo, sem conta e sem chave. Cidade detectada pela internet na primeira vez ou escolhida numa busca |
 | **Papel de parede** | Degradês próprios ou fotos mandadas do computador, com troca automática a cada 1, 3, 6 horas ou 1 dia |
 | **Continuar assistindo** | Lê a lista "Ver a seguir" que Pluto TV, Crunchyroll e YouTube publicam no Android TV. OK abre direto no episódio, no ponto em que parou |
-| **Descanso de tela** | No estilo da tela de bloqueio do macOS: data e hora grandes, widgets de clima e do último episódio, fotos com zoom lento |
+| **Descanso de tela** | No estilo da tela de bloqueio do macOS: data e hora grandes, widgets de clima e do último episódio, fotos com zoom lento desenhado 20 vezes por segundo (o olho não vê diferença, e o processador trabalha uns 30% menos) |
 | **Ícones** | Ícones antigos (logo sobre fundo branco) passam a preencher o quadrado com a própria cor, como no iPhone |
 | **Mouse aéreo** | O item sob o ponteiro ganha o foco, com a lupa do Dock, como passar o mouse no Mac. O tremor da mão parada não rouba o foco de quem usa as setas, e a roda rola as fileiras |
 | **Pouca memória** | Quando o Android avisa que a memória está acabando e a tela inicial está escondida, ela solta o papel de parede e as capas (no teste: de 76 MB para 37 MB) e recarrega na volta |
@@ -514,6 +516,38 @@ programado do projetor.
 </details>
 
 <details>
+<summary><strong>O botão "Liberar memória" que não liberava nada</strong></summary>
+
+<br>
+
+A Central de Controle tinha um "Liberar memória" que fechava os apps parados e mostrava quanto voltou
+("Liberados 288 MB"). Um dos projetos que inspiraram a versão 1.3 diz para nunca ter isso, então medi
+com [scripts/avaliar-liberar-memoria.sh](scripts/avaliar-liberar-memoria.sh), depois de usar a Pluto:
+
+| | Livre ao voltar | Logo depois | 2 minutos depois | Reabrir a Pluto |
+|---|---|---|---|---|
+| Sem o botão | 371 MB | 371 MB | 387 MB | 2,0 s |
+| Com o botão | 324 MB | 393 MB | 383 MB | 1,9 s |
+
+O botão liberava uns 70 MB na hora, mas em 2 minutos o próprio Android liberava a mesma coisa sozinho, e o
+app reabria no mesmo tempo. Uma rodada de cada, mas a direção é clara. Tirei o botão.
+
+</details>
+
+<details>
+<summary><strong>A Central de Controle que só funcionava com o mouse</strong></summary>
+
+<br>
+
+Para o clique do mouse fora de um painel fechá-lo, marquei o painel como clicável. Desde o Android 8, uma
+view clicável vira focável sozinha: as setas do controle passaram a parar no painel inteiro, sem
+selecionar nenhum item, e só o mouse aéreo funcionava. Resolveu marcar o painel como não focável.
+Neste firmware há outro detalhe: o clique do mouse liga o "modo de toque" do Android, que apaga o foco até
+alguém apertar uma seta.
+
+</details>
+
+<details>
 <summary><strong>Netflix com o erro -1007, e o atalho escondido que virava as setas em volume</strong></summary>
 
 <br>
@@ -566,7 +600,7 @@ O tutorial vale para qualquer Android TV ou projetor Android. O que muda de apar
 ```bash
 cd launcher
 cp keystore.properties.example keystore.properties   # e preencha (veja abaixo)
-./gradlew :app:testDebugUnitTest                       # 128 testes, sem aparelho
+./gradlew :app:testDebugUnitTest                       # 127 testes, sem aparelho
 ./gradlew :app:assembleRelease
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
@@ -590,7 +624,11 @@ pensadas para 1920x1080 e escalam para outras resoluções.
 |---|---|
 | [`scripts/reverter.sh`](scripts/reverter.sh) | Desfaz tudo: reativa apps, devolve o launcher do fabricante, volta a Pluto da Play |
 | [`scripts/enviar-wallpaper.sh`](scripts/enviar-wallpaper.sh) | Recorta uma foto em 1920x1080 no computador e manda para o launcher |
-| [`scripts/medir-launcher.sh`](scripts/medir-launcher.sh) | Memória, tempo de abertura e processador parado do launcher, em rodadas |
+| [`scripts/medir-launcher.sh`](scripts/medir-launcher.sh) | O launcher como ele é usado: abrir do zero, voltar de um app, fluidez nas setas, processador parado e memória estável |
+| [`scripts/conferir.sh`](scripts/conferir.sh) | Confere se a limpeza continua de pé depois de atualização ou reset; `--corrigir` reaplica |
+| [`scripts/sem-segundo-plano.sh`](scripts/sem-segundo-plano.sh) | Lista os apps rodando sem estar na tela e impede um app de rodar em segundo plano, sem desinstalar |
+| [`scripts/achar-projetor.sh`](scripts/achar-projetor.sh) | Acha o projetor na rede quando o IP muda |
+| [`scripts/avaliar-liberar-memoria.sh`](scripts/avaliar-liberar-memoria.sh) | Compara memória livre e tempo de reabrir um app com e sem fechar os apps parados |
 | [`scripts/medir-pluto.sh`](scripts/medir-pluto.sh) | Abertura e quadros travados da Pluto TV ao navegar |
 | [`scripts/trocar-pluto.sh`](scripts/trocar-pluto.sh) | Alterna a Pluto entre a versão leve para TV e a da Play Store |
 | [`scripts/qa-seguro.sh`](scripts/qa-seguro.sh) | Funções de teste por ADB que só apertam OK se a tela e o item em foco forem os esperados |
@@ -673,7 +711,7 @@ fica centralizado sobre o branco. Assim, app instalado depois também fica bonit
 
 ## Testes
 
-128 testes da lógica pura, sem aparelho e sem emulador:
+127 testes da lógica pura, sem aparelho e sem emulador:
 
 ```bash
 cd launcher && ./gradlew :app:testDebugUnitTest

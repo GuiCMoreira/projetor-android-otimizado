@@ -1,5 +1,20 @@
 # Changelog
 
+## Início 1.4 (29/10/2026)
+- Descanso de tela mais leve: o zoom lento das fotos é desenhado 20 vezes por segundo, e não a cada quadro da tela. A foto anda menos de 1 pixel por passo, então o visual é o mesmo. Medido no projetor: 657 para 439 quadros em 22 s; processador do launcher de 19,8% para 13,9% e do compositor de tela de 11,2% para 7,9%.
+- Central de Controle: as setas do controle voltaram a funcionar. Desde a 1.3, o painel (que passou a ser clicável, para o clique fora fechá-lo) virava focável sozinho, e as setas paravam nele inteiro, sem selecionar item nenhum. Só o mouse aéreo funcionava. O mesmo valia para os outros painéis.
+- Central de Controle sem "Liberar memória": medido no projetor, o botão liberava uns 70 MB na hora, mas em 2 minutos o próprio Android liberava a mesma coisa sozinho (387 MB livres sem o botão, 383 MB com ele) e a Pluto reabria no mesmo tempo (2,0 s contra 1,9 s). A promessa ("Liberados 288 MB") não se sustentava. Sai também a permissão de fechar apps.
+- Central de Controle sem "Modo de imagem", a pedido do dono. Ficam 8 blocos, 4 fileiras de 2.
+- Descanso de tela: uma foto que ainda carregava quando o descanso parou e voltou entrava no descanso novo e as trocas passavam a acontecer no dobro da velocidade. Agora cada descanso só aceita as próprias fotos.
+
+### Scripts
+- `achar-projetor.sh`: acha o projetor na rede pelo modelo, porque o roteador pode trocar o IP quando ele religa. Os outros scripts usam ele quando não recebem endereço.
+- `conferir.sh`: confere se a limpeza continua de pé (adware fora, apps desativados, Início como tela padrão, animações em 0,5x); `--corrigir` reaplica o que mudou. Útil depois de atualização de firmware ou reset.
+- `sem-segundo-plano.sh`: lista os apps rodando sem estar na tela e impede um app de rodar em segundo plano sem desinstalar (`cmd appops ... RUN_ANY_IN_BACKGROUND ignore`, gravado para valer depois de reiniciar).
+- `medir-launcher.sh` mede o uso real: abertura do zero e volta de um app pelo botão Início (mediana), fluidez nas setas (quadros travados e percentis), processador com a tela parada e memória 2 minutos depois, sem deixar o descanso de tela entrar na medida.
+- `avaliar-liberar-memoria.sh`: compara, depois de usar um app, a memória livre e o tempo para reabrir com e sem fechar os apps parados (foi o que mostrou que o botão não ajudava).
+- Correções da revisão: `qa-seguro.sh` acha o projetor também quando carregado com `source`; o localizador tem tempo limite (uma conexão antiga podia travar tudo) e desconecta o que não for o projetor; `conferir.sh` diz "sem conexão" (saída 2) em vez de acusar diferenças falsas; `reverter.sh` e `medir-pluto.sh` param se não acharem o projetor; `medir-launcher.sh` aceita o jeito antigo de chamar.
+
 ## Início 1.3 (29/10/2026)
 - Mouse aéreo: o item sob o ponteiro ganha o foco (com a lupa e a legenda do Dock), em todas as telas do Início. O tremor da mão parada sobre um ícone não rouba o foco de quem anda com as setas: depois de usar as setas, o ponteiro só volta a mandar quando anda de verdade. Neste firmware o clique do mouse liga o "modo de toque", que apaga o foco; o ponteiro agora o devolve. A roda do mouse rola a fileira de papéis de parede. Campos de texto só ganham foco no clique, para o teclado não abrir sozinho.
 - Descanso de tela: mexer o mouse de verdade (60 px ou mais) ou clicar acorda; o tremor do controle parado, não. O clique que acorda não abre o app escondido embaixo (antes abria). Mexer o mouse na tela inicial também adia o descanso.

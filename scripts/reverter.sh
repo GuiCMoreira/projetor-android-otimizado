@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Desfaz as otimizações aplicadas em 26/10/2026 no projetor Bettdow 1073.
-# Uso: ./reverter.sh [IP:PORTA]   (padrão 192.168.2.100:5555)
+# Uso: ./reverter.sh [IP:PORTA]   (sem endereço, procura o projetor na rede)
 # Cada bloco é independente: dá para copiar só a parte que quiser desfazer.
 set -u
-DEV="${1:-192.168.2.100:5555}"
+DEV="${1:-${DEV:-$(bash "$(dirname "$0")/achar-projetor.sh")}}" || exit 1
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 adb connect "$DEV"
 A="adb -s $DEV shell"

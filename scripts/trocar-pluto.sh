@@ -5,7 +5,7 @@
 # Trocar apaga o "Continuar assistindo" e o login da Pluto (o Android exige desinstalar para voltar de versão).
 set -e
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
-D="adb -s ${DEV:-192.168.2.100:5555}"
+D="adb -s ${DEV:-$(bash "$(dirname "$0")/achar-projetor.sh")}"
 case "${1:-}" in
   leve) V="$DIR/backup/apk/tv.pluto.android-5.65.0-leanback" ;;
   atual) V="$DIR/backup/apk/tv.pluto.android-17.2.0" ;;

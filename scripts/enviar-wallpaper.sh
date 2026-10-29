@@ -3,7 +3,7 @@
 # Uso: ./enviar-wallpaper.sh foto.jpg [IP:PORTA]
 set -euo pipefail
 FOTO="${1:?Uso: $0 foto.jpg [IP:PORTA]}"
-DEV="${2:-192.168.2.100:5555}"
+DEV="${2:-${DEV:-$(bash "$(dirname "$0")/achar-projetor.sh")}}"
 PASTA="/sdcard/Android/data/br.gui.inicio/files/wallpapers"
 
 # Nome seguro: só letras, números, ponto, hífen e sublinhado (o launcher ignora outros nomes).
