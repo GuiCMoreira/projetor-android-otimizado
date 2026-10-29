@@ -57,7 +57,6 @@ for linha in appops.splitlines():
     m = re.match(r'\s+(RECORD_AUDIO|COARSE_LOCATION|FINE_LOCATION|GET_USAGE_STATS) \(([^)]*)\)', linha)
     if m and atual:
         usos.setdefault(atual, {})[m.group(1)] = m.group(2)
-    m = re.search(r'Access: .*?\+?(\d[^ ]*) ago|time=\+?([^ ]+) ago', linha)
 
 def usou(p, op):
     return op in usos.get(p, {})

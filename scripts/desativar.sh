@@ -18,8 +18,8 @@ A=(adb -s "$DEV" shell)
 
 recusa() { echo "RECUSADO: $PKG $1. Nada foi alterado." >&2; exit 1; }
 
-"${A[@]}" pm list packages | tr -d '\r' | grep -qx "package:$PKG" || recusa "não está instalado"
-"${A[@]}" pm list packages -d | tr -d '\r' | grep -qx "package:$PKG" && { echo "$PKG já está desativado."; exit 0; }
+"${A[@]}" pm list packages | tr -d '\r' | grep -qxF "package:$PKG" || recusa "não está instalado"
+"${A[@]}" pm list packages -d | tr -d '\r' | grep -qxF "package:$PKG" && { echo "$PKG já está desativado."; exit 0; }
 
 case "$PKG" in
   android | com.android.systemui | com.android.providers.* | com.android.vending | com.google.android.gms | \
@@ -33,8 +33,8 @@ home=$("${A[@]}" settings get global nl_curr_home_launcher | tr -d '\r')
 entradas=$("${A[@]}" pm query-services -a android.media.tv.TvInputService | tr -d '\r')
 pacotes_entrada=$(awk -F= '/^ +packageName=/ {print $2}' <<< "$entradas" | sort -u)
 processos_entrada=$(awk -F= '/^ +processName=/ {print $2}' <<< "$entradas" | sort -u)
-grep -qx "$PKG" <<< "$pacotes_entrada" && recusa "fornece entrada de vídeo (HDMI ou canal)"
-grep -qx "$PKG" <<< "$processos_entrada" && recusa "é o processo onde a entrada de vídeo roda"
+grep -qxF "$PKG" <<< "$pacotes_entrada" && recusa "fornece entrada de vídeo (HDMI ou canal)"
+grep -qxF "$PKG" <<< "$processos_entrada" && recusa "é o processo onde a entrada de vídeo roda"
 
 perms=$("${A[@]}" dumpsys package "$PKG" | tr -d '\r' | grep -oE 'TV_INPUT_HARDWARE|TV_INPUT_BUTTON|CONNECT_INPUT' | sort -u | tr '\n' ' ')
 if [ -n "$perms" ] && [ "$FORCAR" -eq 0 ]; then
