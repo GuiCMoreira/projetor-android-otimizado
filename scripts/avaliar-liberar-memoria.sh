@@ -17,8 +17,16 @@ tempo_abrir() {
   local t0 t1
   t0=$(date +%s%N)
   abrir
-  # Espera o app estar na frente (o monkey volta antes de ele desenhar).
-  until "${A[@]}" dumpsys activity activities | grep -m1 'topResumedActivity' | grep -q "$APP"; do sleep 0.2; done
+  # Espera o app estar na frente (o monkey volta antes de ele desenhar), no máximo 30 s.
+  # A saída vai para uma variável antes do grep: com pipefail, um grep -m1 no meio do cano dá falso negativo.
+  local voltas=0 frente
+  while :; do
+    frente=$("${A[@]}" dumpsys activity activities | grep 'topResumedActivity' || true)
+    grep -q "$APP" <<< "$frente" && break
+    voltas=$((voltas + 1))
+    [ "$voltas" -lt 150 ] || { echo "$APP não abriu em 30 s" >&2; return 1; }
+    sleep 0.2
+  done
   t1=$(date +%s%N)
   echo $(((t1 - t0) / 1000000))
 }

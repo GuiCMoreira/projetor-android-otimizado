@@ -7,7 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.view.View
 
-enum class Glyph { GEAR, INPUT, GRID, WIFI, BLUETOOTH, CONTROLS, FOCUS, KEYSTONE, ZOOM, PICTURE, PROJECTION, SOUND, CHECK, TIMER, LOCATION, MEMORY }
+enum class Glyph { GEAR, INPUT, GRID, WIFI, BLUETOOTH, CONTROLS, FOCUS, KEYSTONE, ZOOM, PROJECTION, SOUND, CHECK, TIMER, LOCATION }
 
 /** Ícones desenhados em código, para não depender de fontes de símbolos que o aparelho não tem. */
 object Glyphs {
@@ -100,10 +100,6 @@ object Glyphs {
                     c.drawLine(cx + sx * r * 0.58f, cy + sy * r * 0.58f, cx + sx * r * 0.92f, cy + sy * r * 0.92f, p)
                 }
             }
-            Glyph.PICTURE -> {
-                c.drawCircle(cx, cy, r * 0.75f, p)
-                c.drawArc(cx - r * 0.75f, cy - r * 0.75f, cx + r * 0.75f, cy + r * 0.75f, 90f, 180f, true, f)
-            }
             Glyph.PROJECTION -> {
                 c.drawRoundRect(cx - r * 0.85f, cy - r * 0.3f, cx + r * 0.25f, cy + r * 0.45f, r * 0.1f, r * 0.1f, p)
                 c.drawCircle(cx - r * 0.3f, cy + r * 0.07f, r * 0.18f, p)
@@ -131,18 +127,6 @@ object Glyphs {
                 c.drawLine(cx, cy + r * 0.08f, cx, cy - r * 0.32f, p)
                 c.drawLine(cx, cy + r * 0.08f, cx + r * 0.3f, cy + r * 0.25f, p)
                 c.drawLine(cx - r * 0.2f, cy - r * 0.9f, cx + r * 0.2f, cy - r * 0.9f, p)
-            }
-            Glyph.MEMORY -> {
-                // Chip de memória: corpo arredondado com três pinos de cada lado
-                c.drawRoundRect(cx - r * 0.55f, cy - r * 0.55f, cx + r * 0.55f, cy + r * 0.55f, r * 0.12f, r * 0.12f, p)
-                c.drawRoundRect(cx - r * 0.22f, cy - r * 0.22f, cx + r * 0.22f, cy + r * 0.22f, r * 0.05f, r * 0.05f, f)
-                for (k in -1..1) {
-                    val d = k * r * 0.3f
-                    c.drawLine(cx + d, cy - r * 0.55f, cx + d, cy - r * 0.85f, p)
-                    c.drawLine(cx + d, cy + r * 0.55f, cx + d, cy + r * 0.85f, p)
-                    c.drawLine(cx - r * 0.55f, cy + d, cx - r * 0.85f, cy + d, p)
-                    c.drawLine(cx + r * 0.55f, cy + d, cx + r * 0.85f, cy + d, p)
-                }
             }
             Glyph.LOCATION -> {
                 val path = Path().apply {

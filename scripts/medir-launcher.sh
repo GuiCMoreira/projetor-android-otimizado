@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Mede a tela inicial como ela é usada: abrir do zero, voltar de um app, memória estável, fluidez nas setas e CPU parada.
-# Uso: ./medir-launcher.sh [pacote] [rodadas]   (padrão br.gui.inicio, 3; endereço em DEV=IP:PORTA ou procura na rede)
+# Uso: ./medir-launcher.sh [pacote] [rodadas] [IP:PORTA]   (padrão br.gui.inicio, 3; sem IP, usa DEV ou procura na rede)
 # Mede o launcher que está como tela padrão: tudo passa pelo intent do botão Início, porque o gerenciador de memória
 # do fabricante derruba a tela inicial aberta direto (am start -n) logo depois de um force-stop.
 # Mexe na tela: abre os Ajustes e anda com as setas pela Dock. Não usar com alguém assistindo.
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
 PKG="${1:-br.gui.inicio}"
+PKG="${PKG%%/*}" # jeito antigo (pacote/.Atividade) também serve
 N="${2:-3}"
-DEV="${DEV:-$(bash "$DIR/achar-projetor.sh")}"
+DEV="${3:-${DEV:-$(bash "$DIR/achar-projetor.sh")}}" # terceiro argumento: IP:PORTA, como antes
 A=(adb -s "$DEV" shell)
 
 home() { "${A[@]}" am start -W -a android.intent.action.MAIN -c android.intent.category.HOME | awk -F': ' '/TotalTime/ {print $2}' | tr -d '\r'; }

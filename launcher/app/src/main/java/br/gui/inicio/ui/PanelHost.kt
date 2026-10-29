@@ -27,6 +27,8 @@ class PanelHost(ctx: Context) : FrameLayout(ctx) {
         }
         // O painel engole os próprios toques; só o clique fora dele chega a [onTouchEvent] e fecha.
         panel.isClickable = true
+        // Clicável vira focável sozinho (Android 8+): aí as setas paravam no painel inteiro, sem selecionar nenhum item.
+        panel.isFocusable = false
         addView(panel, lp)
         panel.alpha = 0f
         panel.animate().alpha(1f).setDuration(120).start()

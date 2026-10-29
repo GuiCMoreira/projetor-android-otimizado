@@ -6,7 +6,8 @@ set -u
 REDE="${1:-192.168.2}"
 MODELO="pioneer5"   # aparece em ro.product.model do Bettdow 1073
 
-e_projetor() { adb -s "$1" shell getprop ro.product.model 2>/dev/null | grep -q "$MODELO"; }
+# timeout: uma conexão antiga (o IP de antes de religar) pode ficar "device" e travar o getprop por minutos.
+e_projetor() { timeout 5 adb -s "$1" shell getprop ro.product.model 2>/dev/null | grep -q "$MODELO"; }
 
 for d in $(adb devices | awk 'NR > 1 && $2 == "device" {print $1}'); do
   if e_projetor "$d"; then echo "$d"; exit 0; fi
@@ -17,8 +18,9 @@ abertos=$(for i in $(seq 1 254); do
 done; wait)
 
 for d in $abertos; do
-  adb connect "$d" >/dev/null 2>&1
+  timeout 5 adb connect "$d" >/dev/null 2>&1
   if e_projetor "$d"; then echo "$d"; exit 0; fi
+  adb disconnect "$d" >/dev/null 2>&1 # outro aparelho com depuração ligada: não fica conectado à toa
 done
 echo "projetor não encontrado em $REDE.x (ligado? depuração USB ativa?)" >&2
 exit 1

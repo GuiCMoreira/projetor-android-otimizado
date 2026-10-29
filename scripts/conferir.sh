@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Confere se o projetor continua como deixamos: atualização de firmware ou reset pode desfazer a limpeza.
 # Uso: ./conferir.sh [--corrigir]   (endereço em DEV=IP:PORTA; sem ele, procura na rede)
-# Sai com 0 se está tudo certo e 1 se algo mudou. Com --corrigir, reaplica o que mudou e confere de novo.
+# Sai com 0 se está tudo certo, 1 se algo mudou e 2 se não alcançou o projetor. Com --corrigir, reaplica o que mudou e confere de novo.
 set -u
 DIR="$(cd "$(dirname "$0")" && pwd)"
 DEV="${DEV:-$(bash "$DIR/achar-projetor.sh")}" || exit 1
@@ -54,6 +54,8 @@ corrigir() {
 }
 
 echo "Projetor em $DEV"
+# Sem resposta do adb, toda conferência daria "mudou": melhor dizer que não alcançou (saída 2).
+"${A[@]}" true >/dev/null 2>&1 || { echo "sem conexão com $DEV" >&2; exit 2; }
 conferir
 if [ "$problemas" -eq 0 ]; then
   echo "Tudo como deixamos."

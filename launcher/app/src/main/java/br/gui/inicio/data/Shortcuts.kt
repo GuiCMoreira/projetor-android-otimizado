@@ -36,19 +36,17 @@ object Shortcuts {
     val AUTOFOCUS = SystemShortcut("autofocus", "Foco automático", "Ajusta a nitidez", Glyph.FOCUS, listOf(action("com.zhiying.AUTO_FOCUS")))
     val KEYSTONE = SystemShortcut("keystone", "Keystone", "Corrigir 4 cantos", Glyph.KEYSTONE, listOf(action("android.intent.action.FOUR_POINT")))
     val ZOOM = SystemShortcut("zoom", "Zoom", "Tamanho da imagem", Glyph.ZOOM, listOf(action("android.intent.action.Scale")))
-    val PICTURE = SystemShortcut("picture", "Modo de imagem", "Cores e brilho", Glyph.PICTURE, listOf(action("com.zhiying.PICTUREMODE")))
     val PROJECTION = SystemShortcut("projection", "Projeção", "Frontal, teto, traseira", Glyph.PROJECTION, listOf(action("android.settings.PROJECTION")))
     val SOUND = SystemShortcut("sound", "Som", "Saída e volume", Glyph.SOUND, listOf(action(Settings.ACTION_SOUND_SETTINGS)))
     /** Timer para desligar: abre "Outros ajustes" do projetor, onde fica o "Desligamento programado" oficial. */
     val SLEEP_TIMER = SystemShortcut("sleep", "Timer para desligar", "Desligamento programado", Glyph.TIMER, listOf(action("android.settings.OTHER_SETTINGS")))
     /** Ação da própria tela inicial (sem tela para abrir): fecha os apps parados em segundo plano. */
-    val FREE_MEMORY = SystemShortcut("memory", "Liberar memória", "Fecha apps parados", Glyph.MEMORY, emptyList())
     val ORIGINAL_LAUNCHER = SystemShortcut(
         "original", "Launcher original do fabricante", "", Glyph.GRID,
         listOf(Intent(Intent.ACTION_MAIN).setComponent(ComponentName("com.zeasn.launcher.projector", "com.zeasn.launcher.ui.MainActivity"))),
     )
 
-    val CONTROL_CENTER = listOf(AUTOFOCUS, KEYSTONE, ZOOM, PICTURE, PROJECTION, SOUND, SOURCE, SLEEP_TIMER, SETTINGS)
+    val CONTROL_CENTER = listOf(AUTOFOCUS, KEYSTONE, ZOOM, PROJECTION, SOUND, SOURCE, SLEEP_TIMER, SETTINGS)
 }
 
 class ShortcutResolver(private val ctx: Context) {

@@ -3,7 +3,7 @@
 # Uso: ./reverter.sh [IP:PORTA]   (sem endereço, procura o projetor na rede)
 # Cada bloco é independente: dá para copiar só a parte que quiser desfazer.
 set -u
-DEV="${1:-${DEV:-$(bash "$(dirname "$0")/achar-projetor.sh")}}"
+DEV="${1:-${DEV:-$(bash "$(dirname "$0")/achar-projetor.sh")}}" || exit 1
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 adb connect "$DEV"
 A="adb -s $DEV shell"

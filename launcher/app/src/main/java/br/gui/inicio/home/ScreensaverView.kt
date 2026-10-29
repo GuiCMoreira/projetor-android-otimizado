@@ -63,6 +63,8 @@ class ScreensaverView(ctx: Context, private val loader: WallpaperLoader, private
     private var front = 0
     private var running = false
     private val next = Runnable { showNext() }
+    /** Muda a cada início: uma foto que ficou carregando de um descanso anterior não entra no novo (dobraria as trocas). */
+    private var session = 0
     /** Início (relógio de [SystemClock.uptimeMillis]) e deslocamento do zoom de cada camada; 0 = parada. */
     private val zoomStart = LongArray(2)
     private val zoomDx = FloatArray(2)
@@ -106,6 +108,7 @@ class ScreensaverView(ctx: Context, private val loader: WallpaperLoader, private
     fun start(choices: List<WallpaperChoice>, info: SaverInfo) {
         if (running || choices.isEmpty()) return
         running = true
+        session++
         slides = choices
         index = Random.nextInt(choices.size)
         episode = info.episode
@@ -234,9 +237,10 @@ class ScreensaverView(ctx: Context, private val loader: WallpaperLoader, private
         val choice = slides[index % slides.size]
         index++
         val m = resources.displayMetrics
+        val mine = session
         io.execute {
             val bmp: Bitmap? = Guard.run({ null }) { loader.render(choice, m.widthPixels, m.heightPixels, fullScreen = true) }
-            main.post { if (running) crossfade(bmp) }
+            main.post { if (running && session == mine) crossfade(bmp) }
         }
     }
 

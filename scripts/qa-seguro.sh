@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Funções de teste por ADB com trava de segurança: só aperta OK se a tela e o item focado forem os esperados.
 # Uso: source scripts/qa-seguro.sh
-DEV="${DEV:-$(bash "$(dirname "$0")/achar-projetor.sh")}"
+# BASH_SOURCE, e não $0: com "source", $0 é o próprio bash.
+DEV="${DEV:-$(bash "$(dirname "${BASH_SOURCE[0]}")/achar-projetor.sh")}"
+[ -n "$DEV" ] || { echo "qa-seguro: projetor não encontrado" >&2; return 1 2>/dev/null || exit 1; }
 D="adb -s $DEV"
 
 tecla() { $D shell input keyevent "$@"; sleep 1; }
