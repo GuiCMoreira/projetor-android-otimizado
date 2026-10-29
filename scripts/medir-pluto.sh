@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Mede a Pluto TV: tempo da abertura do zero até a tela inicial dela e travadas de quadro ao navegar com as setas.
 # Uso: scripts/medir-pluto.sh [rodadas]   (só setas, nunca OK: não abre nem toca nada)
-D="adb -s ${DEV:-192.168.2.100:5555}"
+D="adb -s ${DEV:-$(bash "$(dirname "$0")/achar-projetor.sh")}"
 P=tv.pluto.android
 N="${1:-2}"
 # Tela principal: 17.x (base Paramount+) ou 5.x leanback

@@ -1,7 +1,6 @@
 package br.gui.inicio.home
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
+import android.os.SystemClock
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -13,12 +12,12 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewOutlineProvider
-import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import br.gui.inicio.core.ClockFormat
 import br.gui.inicio.core.Guard
+import br.gui.inicio.core.KenBurns
 import br.gui.inicio.core.WallpaperChoice
 import br.gui.inicio.core.Weather
 import br.gui.inicio.core.WeatherCodes
@@ -64,7 +63,23 @@ class ScreensaverView(ctx: Context, private val loader: WallpaperLoader, private
     private var front = 0
     private var running = false
     private val next = Runnable { showNext() }
-    private val kenBurns = arrayOfNulls<AnimatorSet>(2)
+    /** Início (relógio de [SystemClock.uptimeMillis]) e deslocamento do zoom de cada camada; 0 = parada. */
+    private val zoomStart = LongArray(2)
+    private val zoomDx = FloatArray(2)
+    private val zoomStep = object : Runnable {
+        override fun run() {
+            if (!running) return
+            val now = SystemClock.uptimeMillis()
+            for (i in 0..1) {
+                if (zoomStart[i] == 0L) continue
+                val f = KenBurns.at(now - zoomStart[i], SLIDE_MS + FADE_MS, zoomDx[i])
+                layers[i].scaleX = f.scale
+                layers[i].scaleY = f.scale
+                layers[i].translationX = f.translationX
+            }
+            main.postDelayed(this, KenBurns.STEP_MS)
+        }
+    }
 
     val isRunning: Boolean get() = running
 
@@ -110,7 +125,8 @@ class ScreensaverView(ctx: Context, private val loader: WallpaperLoader, private
         visibility = View.GONE
         episode = null
         widgets.removeAllViews() // solta a capa do episódio
-        kenBurns.forEach { it?.cancel() }
+        main.removeCallbacks(zoomStep)
+        zoomStart.fill(0L)
         layers.forEach {
             it.animate().cancel()
             it.setImageDrawable(null) // libera as fotos
@@ -232,21 +248,16 @@ class ScreensaverView(ctx: Context, private val loader: WallpaperLoader, private
             incoming.setImageBitmap(bmp)
             incoming.alpha = 0f
             incoming.animate().alpha(1f).setDuration(FADE_MS).start()
-            // Ken Burns: zoom e deslocamento lentos durante todo o tempo da foto (a GPU anima, a CPU fica parada).
-            // Animador separado do esmaecimento: um ViewPropertyAnimator só tem uma duração por vez.
-            val dx = (if (Random.nextBoolean()) 1 else -1) * Theme.s(60f)
-            kenBurns[incomingIndex]?.cancel()
-            kenBurns[incomingIndex] = AnimatorSet().apply {
-                playTogether(
-                    ObjectAnimator.ofFloat(incoming, View.SCALE_X, 1f, 1.12f),
-                    ObjectAnimator.ofFloat(incoming, View.SCALE_Y, 1f, 1.12f),
-                    ObjectAnimator.ofFloat(incoming, View.TRANSLATION_X, 0f, dx),
-                )
-                duration = SLIDE_MS + FADE_MS
-                interpolator = LinearInterpolator()
-                start()
-            }
-            outgoing.animate().alpha(0f).setDuration(FADE_MS).withEndAction { if (running) outgoing.setImageDrawable(null) }.start()
+            // Ken Burns: zoom e deslocamento lentos durante todo o tempo da foto, em passos de 20 por segundo.
+            zoomDx[incomingIndex] = (if (Random.nextBoolean()) 1 else -1) * Theme.s(60f)
+            zoomStart[incomingIndex] = SystemClock.uptimeMillis()
+            main.removeCallbacks(zoomStep)
+            zoomStep.run()
+            val outgoingIndex = front
+            outgoing.animate().alpha(0f).setDuration(FADE_MS).withEndAction {
+                if (running) outgoing.setImageDrawable(null)
+                zoomStart[outgoingIndex] = 0L // camada vazia não precisa mais de passos
+            }.start()
             front = incomingIndex
         }
         main.postDelayed(next, SLIDE_MS)

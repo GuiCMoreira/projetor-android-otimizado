@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Funções de teste por ADB com trava de segurança: só aperta OK se a tela e o item focado forem os esperados.
 # Uso: source scripts/qa-seguro.sh
-DEV="${DEV:-192.168.2.100:5555}"
+DEV="${DEV:-$(bash "$(dirname "$0")/achar-projetor.sh")}"
 D="adb -s $DEV"
 
 tecla() { $D shell input keyevent "$@"; sleep 1; }
