@@ -53,4 +53,28 @@ Nota sobre a Netflix (27/10/2026): a 9.89 é a versão de celular e não desenha
 
 Nota (29/10/2026): conferido que nenhum pacote desativado fornece entrada de vídeo. O HDMI vem de `com.sstar.tv.inputservice` (ativo). Os atualizadores `com.uv.droid.uota` e `uotaback` têm a permissão `TV_INPUT_HARDWARE`, mas não registram entrada nenhuma.
 
+## Se aparecer uma atualização do sistema
+
+Os atualizadores do fabricante (`com.uv.droid.uota` e `uotaback`) estão desativados, então o projetor não baixa
+atualização sozinho. Foi de propósito: a atualização vem de um servidor do fabricante, o mesmo que entregou o
+aparelho com adware. Se um dia quiser atualizar:
+
+1. Reativar: `adb shell pm enable com.uv.droid.uota` e `adb shell pm enable com.uv.droid.uotaback`.
+2. Atualizar pelo menu de atualização do fabricante e deixar o projetor reiniciar.
+3. Rodar `scripts/conferir.sh`. Ele aponta o que a atualização desfez (adware de volta, apps reativados, outra
+   tela padrão, animações). `scripts/conferir.sh --corrigir` reaplica tudo, inclusive desativa os atualizadores
+   de novo.
+4. Testar o HDMI (Central de Controle > Fontes) e o botão Início.
+
+## Auditoria de privacidade (29/10/2026, `scripts/auditar-privacidade.sh`, só leitura)
+
+- Nenhum assistente de voz, nenhum administrador do aparelho, nenhum app de telemetria do Google instalado.
+- Microfone: só o YouTube usou (busca por voz). Play Store, Crunchyroll, Netflix e o teclado têm a permissão,
+  sem uso registrado.
+- Leitor de notificações configurado: `com.siliconworks.firmware`, que nem está instalado. Resto inofensivo de
+  fábrica.
+- Descanso de tela do fabricante (`com.newlink.screensaver`): tem internet, localização, desligar o aparelho e
+  alterar configurações protegidas, e está configurado como descanso do sistema. Na prática não roda: o sistema
+  só o chamaria ao dormir, e a tela nunca dorme (`screen_off_timeout` no máximo). Mantido.
+
 O launcher do fabricante continua instalado, mas desativado. Conferido após reiniciar: a tela padrão continua sendo o Início.
