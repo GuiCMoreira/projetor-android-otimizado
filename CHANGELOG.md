@@ -1,5 +1,12 @@
 # Changelog
 
+## Início 1.3 (29/10/2026)
+- Mouse aéreo: o item sob o ponteiro ganha o foco (com a lupa e a legenda do Dock), em todas as telas do Início. O tremor da mão parada sobre um ícone não rouba o foco de quem anda com as setas: depois de usar as setas, o ponteiro só volta a mandar quando anda de verdade. Neste firmware o clique do mouse liga o "modo de toque", que apaga o foco; o ponteiro agora o devolve. A roda do mouse rola a fileira de papéis de parede. Campos de texto só ganham foco no clique, para o teclado não abrir sozinho.
+- Descanso de tela: mexer o mouse de verdade (60 px ou mais) ou clicar acorda; o tremor do controle parado, não. O clique que acorda não abre o app escondido embaixo (antes abria). Mexer o mouse na tela inicial também adia o descanso.
+- Painéis (menu Início, Central de Controle, calendário, menu de um app): com o painel aberto, clicar fora dele fecha o painel, em vez de abrir o que está atrás.
+- Aviso de pouca memória do Android: com outro app na frente, a tela inicial solta o papel de parede e as capas e recarrega na volta. Uma carga que termina com a tela escondida não ocupa memória de novo. No teste, o Início caiu de 61 MB para 32 MB com outro app aberto, e a volta continuou instantânea.
+- Proteção contra quedas: se o Início fechar sozinho 3 vezes em 5 minutos, abre uma tela de emergência simples (só peças do Android) com "Tentar a tela inicial de novo", "Ajustes do Android" e a lista de apps. Ela abre uma vez só (o botão Início não empilha outras) e se fecha quando você sai para um app. Se ela mesma cair, o projetor abre os Ajustes do Android. Antes, como o launcher do fabricante está desativado, o projetor ficaria sem tela inicial.
+
 ## Início 1.2 (26/10/2026)
 - Fileira "Continuar assistindo" com o que você estava vendo na Pluto TV, Crunchyroll e YouTube (lista "Ver a seguir" do Android TV): capa, progresso, temporada, episódio e quanto falta. OK abre direto no episódio, no ponto em que parou. A Netflix deste aparelho não publica nessa lista.
 - Capas guardadas no aparelho: depois da primeira vez, a fileira aparece em menos de meio segundo.

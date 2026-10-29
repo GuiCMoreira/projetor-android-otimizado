@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.MotionEvent
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -19,6 +20,7 @@ import br.gui.inicio.core.Guard
 import br.gui.inicio.data.AppEntry
 import br.gui.inicio.data.AppRepository
 import br.gui.inicio.data.Prefs
+import br.gui.inicio.ui.PointerFocus
 import br.gui.inicio.ui.Backdrop
 import br.gui.inicio.ui.Glyph
 import br.gui.inicio.ui.GlyphView
@@ -28,6 +30,7 @@ import java.util.concurrent.Executors
 
 /** Lista de apps para montar o Dock: OK coloca ou tira, ← → mudam a posição. Play Store é atalho fixo e não aparece. */
 class DockEditorActivity : Activity() {
+    private val pointer = PointerFocus()
     private class Row(val pkg: String, val position: TextView, val mark: FrameLayout, val check: GlyphView)
 
     private lateinit var prefs: Prefs
@@ -36,6 +39,10 @@ class DockEditorActivity : Activity() {
     private val io: ExecutorService = Executors.newSingleThreadExecutor()
     private val rows = mutableListOf<Row>()
     private var installed: Set<String> = emptySet()
+
+    /** Mouse aéreo: o item sob o ponteiro ganha o foco; a roda rola as fileiras. */
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean =
+        pointer.handle(window.decorView, event) || super.dispatchGenericMotionEvent(event)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
