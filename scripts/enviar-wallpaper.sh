@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Envia uma foto para o launcher Início, já recortada e reduzida para a tela do projetor (1920x1080).
+# Envia uma foto para o launcher Início, já recortada e reduzida para a tela do projetor (1920x1080), em JPEG
+# qualidade 95 com a cor em resolução cheia: em 85 com cor reduzida, contornos coloridos e céus perdem nitidez.
 # Uso: ./enviar-wallpaper.sh foto.jpg [IP:PORTA]
 set -euo pipefail
 FOTO="${1:?Uso: $0 foto.jpg [IP:PORTA]}"
@@ -14,7 +15,7 @@ NOME="$(printf '%s' "$BASE" | tr -c 'A-Za-z0-9._-' '_' | sed 's/^[^A-Za-z0-9]*//
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 SAIDA="$TMP/${NOME}.jpg"
-convert "$FOTO" -auto-orient -resize '1920x1080^' -gravity center -extent 1920x1080 -strip -quality 85 "$SAIDA"
+convert "$FOTO" -auto-orient -resize '1920x1080^' -gravity center -extent 1920x1080 -strip -quality 95 -sampling-factor 4:4:4 "$SAIDA"
 
 adb connect "$DEV" >/dev/null
 adb -s "$DEV" shell mkdir -p "$PASTA"
