@@ -22,6 +22,7 @@ object IconStyle {
         "tv.pluto.android" to 0.8f,
         "com.wbd.stream" to 0.9f,
         "com.stremio.one" to 0.9f,
+        "com.s0und.s0undtv" to 0.7f,
     )
 
     /** 12 pontos a 2 px da borda, em 1/4, 1/2 e 3/4 de cada lado (longe dos cantos arredondados). */

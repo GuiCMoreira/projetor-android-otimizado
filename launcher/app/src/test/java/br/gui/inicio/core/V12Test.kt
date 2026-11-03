@@ -53,6 +53,9 @@ class V12Test {
         assertEquals(0.9f, IconStyle.foregroundScale("com.stremio.one"), 0f)
     }
 
+    /** O "S" do S0undTV ia de borda a borda do ícone (pedido do dono: "deixe esse S menor"). */
+    @Test fun s0undTvLetterIsSmaller() = assertEquals(0.7f, IconStyle.foregroundScale("com.s0und.s0undtv"), 0f)
+
     // Continuar assistindo
     private fun item(
         title: String,
