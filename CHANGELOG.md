@@ -1,5 +1,9 @@
 # Changelog
 
+## Início 1.5.2 (03/11/2026)
+- Continuar assistindo com o SmartTube (YouTube sem anúncios): ele informa o código do vídeo, então o cartão abre o vídeo no SmartTube no ponto em que parou, com barra de progresso (o YouTube oficial só abria o app).
+- Segunda linha do cartão só com o canal: o SmartTube manda "Canal • 2 mi de visualizações • há 4 dias", e visualizações e data envelhecem no cartão. Vale também para o que já estava anotado.
+
 ## Início 1.5.1 (03/11/2026)
 - Ícone do S0undTV (cliente de Twitch) com o "S" menor: o desenho ia de borda a borda do quadrado.
 
