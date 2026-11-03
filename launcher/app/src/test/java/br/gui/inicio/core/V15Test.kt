@@ -78,6 +78,18 @@ class PlayedLogTest {
         assertNull(PlayedLog.link("com.netflix.mediaclient", "dQw4w9WgXcQ", 0))
     }
 
+    /** O SmartTube informa o código do vídeo e abre links do YouTube: o cartão volta ao vídeo, no ponto. */
+    @Test fun smartTubeOpensTheVideoWhereItStopped() {
+        assertEquals("https://www.youtube.com/watch?v=ZWQAbRkPto0&t=120s", PlayedLog.link("org.smarttube.stable", "ZWQAbRkPto0", 120_000))
+        assertEquals("https://www.youtube.com/watch?v=ZWQAbRkPto0&t=0s", PlayedLog.link("org.smarttube.beta", "ZWQAbRkPto0", 0))
+    }
+
+    /** "Canal • 2 mi de visualizações • há 4 dias": visualizações e data envelhecem no cartão; fica o canal. */
+    @Test fun secondLineKeepsOnlyTheFirstPart() {
+        assertEquals("Nômade Raiz", PlayedLog.secondLine("org.smarttube.stable", "Vídeo", "Nômade Raiz • 2 mi de visualizações • há 4 dias"))
+        assertEquals("P1:E1 - Capítulo 1", PlayedLog.secondLine("com.netflix.mediaclient", "Capítulo 1", "P1:E1 - Capítulo 1"))
+    }
+
     /** "ATliens", do ATliens: em música o artista aparece mesmo igual ao título; em vídeo, repetir não acrescenta nada. */
     @Test fun secondLineEqualToTitleOnlyStaysInMusic() {
         assertEquals("ATliens", PlayedLog.secondLine("com.spotify.tv.android", "ATliens", "ATliens"))
@@ -94,6 +106,12 @@ class PlayedLogTest {
         assertEquals(7L, item.lastEngagedMs)
         assertEquals(900_000L, item.durationMs)
         assertEquals("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=60s", item.intentUri)
+    }
+
+    /** Anotado antes da 1.5.2, com visualizações e data: o cartão mostra só o canal. */
+    @Test fun oldEntryShowsOnlyTheChannel() {
+        val item = PlayedLog.toWatchNext(played("Vídeo", 1, pkg = "org.smarttube.stable", subtitle = "Nômade Raiz • 2 mi de visualizações • há 4 dias"))
+        assertEquals("Nômade Raiz", item.subtitle)
     }
 
     @Test fun savedAndReadBack() {

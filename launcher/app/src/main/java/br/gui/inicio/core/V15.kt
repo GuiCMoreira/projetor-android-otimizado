@@ -32,14 +32,18 @@ object PlayedLog {
     /** Música ocupa um cartão só, o da última que tocou (combinado com o dono). */
     val MUSIC = setOf("com.spotify.tv.android", "com.spotify.music")
 
-    private val YOUTUBE = setOf("com.google.android.youtube.tv", "com.google.android.youtube")
+    /** Apps que tocam YouTube e abrem um link de vídeo (o SmartTube aceita os mesmos links do oficial). */
+    private val YOUTUBE = setOf("com.google.android.youtube.tv", "com.google.android.youtube", "org.smarttube.stable", "org.smarttube.beta")
     private val VIDEO_ID = Regex("^[A-Za-z0-9_-]{11}$")
 
     fun watched(positionMs: Long): Boolean = positionMs >= MIN_WATCHED_MS
 
-    /** Segunda linha do cartão. Igual ao título só fica em música ("ATliens", do ATliens); em vídeo, repetiria. */
+    /**
+     * Segunda linha do cartão. Igual ao título só fica em música ("ATliens", do ATliens); em vídeo, repetiria.
+     * Do "Canal • 2 mi de visualizações • há 4 dias" do SmartTube fica só o canal: o resto envelhece no cartão.
+     */
     fun secondLine(pkg: String, title: String, raw: String?): String? {
-        val line = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val line = raw?.substringBefore(" • ")?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         return if (pkg !in MUSIC && line == title.trim()) null else line
     }
 
@@ -72,7 +76,8 @@ object PlayedLog {
         durationMs = p.durationMs,
         intentUri = link(p.pkg, p.mediaId, p.positionMs),
         lastEngagedMs = p.playedAtMs,
-        subtitle = p.subtitle,
+        // De novo aqui: o que foi anotado antes da 1.5.2 guardou a linha inteira.
+        subtitle = secondLine(p.pkg, p.title, p.subtitle),
     )
 
     /** Uma linha por item, campos separados por TAB; TAB, quebra de linha e barra invertida escapados. */
