@@ -96,5 +96,22 @@
             android:excludeFromRecents="true"
             android:exported="false"
             android:screenOrientation="landscape" />
+
+        <!--
+            Vê o que toca nos apps (sessão de mídia) para o Continuar assistindo. O filtro deixa passar só
+            notificações de conversa, que um projetor não tem: o serviço não recebe notificação nenhuma.
+        -->
+        <service
+            android:name=".data.PlayingListener"
+            android:exported="true"
+            android:label="Continuar assistindo"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.notification.default_filter_types"
+                android:value="conversations" />
+        </service>
     </application>
 </manifest>

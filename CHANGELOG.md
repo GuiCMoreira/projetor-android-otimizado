@@ -1,5 +1,16 @@
 # Changelog
 
+## Início 1.5 (03/11/2026)
+- Continuar assistindo com YouTube, Netflix e Spotify. Neste projetor esses apps não publicam na lista "Ver a seguir" do Android (conferido no banco do sistema: só a Pluto e, depois do login, o Crunchyroll). O Início passa a anotar o que toca, pelo que cada app informa ao sistema enquanto toca (a mesma sessão de mídia que o controle usa): título, segunda linha (canal, artista, "P1:E1 - Capítulo 1"), imagem e ponto em que parou. Conta só depois de 30 s tocando, para prévias e trailers não virarem cartão. Precisa do acesso a notificações (`cmd notification allow_listener br.gui.inicio/br.gui.inicio.data.PlayingListener`); o filtro do manifesto não deixa chegar notificação nenhuma. Medido: 63 a 64 MB contra 55 a 60 MB da 1.4.
+- No máximo 2 cartões por app; música fica com 1, o da última que tocou, sem barra de progresso nem "faltam X min".
+- Episódio que chegou ao fim (menos de 2 min para acabar) sai da fileira, venha de onde vier: o Crunchyroll publicava um episódio já terminado.
+- Segurar OK (ou a tecla Menu) num cartão: "Abrir" ou "Remover do Continuar assistindo", que tira a série de vez. Os apps não dizem de qual perfil é o item, e o Crunchyroll publicou o que foi visto no perfil de outra pessoa.
+- A fileira é refeita quando algo novo é anotado com a tela aberta, e uma mudança que chega durante uma leitura não se perde.
+- YouTube, Netflix e Spotify abrem o app (nenhum informa um código que dê para abrir de fora); Pluto e Crunchyroll seguem abrindo direto no episódio.
+
+### Scripts
+- `enviar-wallpaper.sh`: fotos em JPEG qualidade 95 com a cor em resolução cheia (era 85 com a cor reduzida, e contornos e céus perdiam nitidez).
+
 ## Início 1.4 (29/10/2026)
 - Descanso de tela mais leve: o zoom lento das fotos é desenhado 20 vezes por segundo, e não a cada quadro da tela. A foto anda menos de 1 pixel por passo, então o visual é o mesmo. Medido no projetor: 657 para 439 quadros em 22 s; processador do launcher de 19,8% para 13,9% e do compositor de tela de 11,2% para 7,9%.
 - Central de Controle: as setas do controle voltaram a funcionar. Desde a 1.3, o painel (que passou a ser clicável, para o clique fora fechá-lo) virava focável sozinho, e as setas paravam nele inteiro, sem selecionar item nenhum. Só o mouse aéreo funcionava. O mesmo valia para os outros painéis.

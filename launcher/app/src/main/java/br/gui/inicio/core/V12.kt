@@ -57,11 +57,18 @@ data class WatchNextItem(
     val lastEngagedMs: Long,
     /** Mesma série pode vir duas vezes (o app publica o episódio novo com outro título); a série junta as duas. */
     val seriesId: String? = null,
+    /** Segunda linha que o app informou ao tocar (canal do YouTube, artista, "P1:E1 - Capítulo 1" da Netflix). */
+    val subtitle: String? = null,
 )
 
 object WatchNextList {
     /** Cabem 4 cartões inteiros na largura da tela (340 px + 28 de vão, a partir da margem de 110). */
     const val MAX = 4
+
+    /** Um app só não ocupa a fileira inteira; música, que muda a cada 3 minutos, fica com um cartão. */
+    const val PER_APP = 2
+
+    fun limitFor(pkg: String): Int = if (pkg in PlayedLog.MUSIC) 1 else PER_APP
 
     /** Códigos longos (20+ dígitos hexadecimais) da capa e do link: identificam o episódio mesmo quando o título muda. */
     private val LONG_ID = Regex("[0-9a-f]{20,}")
@@ -70,15 +77,18 @@ object WatchNextList {
         sequenceOf(item.poster, item.intentUri).filterNotNull().flatMap { LONG_ID.findAll(it.lowercase()).map { m -> m.value } }.toSet()
 
     /**
-     * Mais recente primeiro, só de apps que abrem; no máximo [MAX]. Repetido = mesmo app e mesma série, mesmo título
+     * Mais recente primeiro, só de apps que abrem; no máximo [MAX], e [limitFor] de cada app. Repetido = mesmo app e mesma série, mesmo título
      * ou um código de episódio em comum (a Pluto publica o mesmo episódio de novo com outro título, capa e link).
      */
     fun pick(items: List<WatchNextItem>, openable: (String) -> Boolean): List<WatchNextItem> {
         val seen = HashSet<String>()
         val kept = ArrayList<WatchNextItem>()
-        for (item in items.filter { it.title.isNotBlank() && openable(it.pkg) }.sortedByDescending { it.lastEngagedMs }) {
+        val perApp = HashMap<String, Int>()
+        for (item in items.filter { it.title.isNotBlank() && !finished(it) && openable(it.pkg) }.sortedByDescending { it.lastEngagedMs }) {
             val keys = ids(item) + ("serie:" + (item.seriesId?.takeIf { it.isNotBlank() } ?: item.title.trim()))
             if (keys.any { "${item.pkg}|$it" in seen }) continue
+            if ((perApp[item.pkg] ?: 0) >= limitFor(item.pkg)) continue
+            perApp[item.pkg] = (perApp[item.pkg] ?: 0) + 1
             keys.forEach { seen += "${item.pkg}|$it" }
             kept += item
             if (kept.size == MAX) break
@@ -86,13 +96,19 @@ object WatchNextList {
         return kept
     }
 
-    /** Fração assistida; null quando o app não informa. */
-    fun progress(item: WatchNextItem): Float? =
-        if (item.positionMs > 0 && item.durationMs > 0) (item.positionMs.toFloat() / item.durationMs).coerceAtMost(1f) else null
+    /** Faltam só os créditos ([PlayedLog.FINISHED_LEFT_MS]): o Crunchyroll publica episódio já terminado. Música não conta. */
+    fun finished(item: WatchNextItem): Boolean =
+        item.pkg !in PlayedLog.MUSIC && item.positionMs > 0 && item.durationMs > 0 &&
+            item.durationMs - item.positionMs < PlayedLog.FINISHED_LEFT_MS
 
-    /** "Pluto TV · Temporada 1 · Episódio 1 · faltam 19 min", só com o que o app informou. */
+    /** Fração assistida; null quando o app não informa e em música (ouvir não é "continuar de onde parou"). */
+    fun progress(item: WatchNextItem): Float? =
+        if (item.pkg !in PlayedLog.MUSIC && item.positionMs > 0 && item.durationMs > 0) (item.positionMs.toFloat() / item.durationMs).coerceAtMost(1f) else null
+
+    /** "Pluto TV · Temporada 1 · Episódio 1 · faltam 19 min" ou "YouTube · canal · faltam 8 min", só com o que o app informou. */
     fun meta(item: WatchNextItem, appName: String): String {
         val parts = mutableListOf(appName)
+        item.subtitle?.takeIf { it.isNotBlank() }?.let { parts += it.trim() }
         if (!item.season.isNullOrBlank() && !item.episode.isNullOrBlank()) parts += "Temporada ${item.season}"
         if (!item.episode.isNullOrBlank()) parts += "Episódio ${item.episode}"
         if (progress(item) != null) {

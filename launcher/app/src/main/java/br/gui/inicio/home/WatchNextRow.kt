@@ -20,6 +20,8 @@ class WatchNextCard(
     val poster: Bitmap?,
     val badge: Bitmap?,
     val onOpen: () -> Unit,
+    /** Segurar OK (ou a tecla Menu) no cartão: abre as opções, com o cartão de âncora. */
+    val onMenu: (View) -> Unit = {},
 )
 
 /**
@@ -70,6 +72,7 @@ class WatchNextRow(ctx: Context) : LinearLayout(ctx) {
                     }
                 }
                 v.setOnClickListener { item.onOpen() }
+                v.setOnLongClickListener { item.onMenu(it); true }
                 strip.addView(v, LayoutParams(w, h).apply { if (i > 0) leftMargin = Theme.si(28f) })
             }
         }
@@ -127,6 +130,7 @@ class WatchNextRow(ctx: Context) : LinearLayout(ctx) {
             when (code) {
                 KeyEvent.KEYCODE_DPAD_UP -> { onUp(); true }
                 KeyEvent.KEYCODE_DPAD_DOWN -> { onDown(); true }
+                KeyEvent.KEYCODE_MENU -> { item.onMenu(this); true }
                 else -> false
             }
         }
