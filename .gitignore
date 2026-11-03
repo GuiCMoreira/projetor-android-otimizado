@@ -11,3 +11,9 @@ launcher/local.properties
 launcher/keystore.properties
 launcher/.kotlin/
 apk/
+tv-tcl/launcher/build/
+tv-tcl/launcher/app/build/
+tv-tcl/launcher/.gradle/
+tv-tcl/launcher/local.properties
+tv-tcl/launcher/keystore.properties
+tv-tcl/launcher/.kotlin/
