@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Início</string>
+    <!-- Nome na saudação ("Boa noite, Ana e João"). Vazio: só "Boa noite". -->
+    <string name="greeting_name"></string>
+</resources>

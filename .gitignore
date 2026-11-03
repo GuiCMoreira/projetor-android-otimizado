@@ -17,3 +17,9 @@ tv-tcl/launcher/.gradle/
 tv-tcl/launcher/local.properties
 tv-tcl/launcher/keystore.properties
 tv-tcl/launcher/.kotlin/
+tv-tcl-mae/launcher/build/
+tv-tcl-mae/launcher/app/build/
+tv-tcl-mae/launcher/.gradle/
+tv-tcl-mae/launcher/local.properties
+tv-tcl-mae/launcher/keystore.properties
+tv-tcl-mae/launcher/.kotlin/
