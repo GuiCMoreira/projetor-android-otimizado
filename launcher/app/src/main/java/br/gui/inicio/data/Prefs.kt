@@ -3,6 +3,7 @@ package br.gui.inicio.data
 import android.content.Context
 import br.gui.inicio.core.City
 import br.gui.inicio.core.DockConfig
+import br.gui.inicio.core.HiddenShows
 import br.gui.inicio.core.NewAppsState
 import br.gui.inicio.core.Rotation
 import br.gui.inicio.core.Screensaver
@@ -31,6 +32,11 @@ class Prefs(ctx: Context) {
     var rotateMinutes: Int
         get() = int(K_ROTATE, Rotation.OPTIONS[1])
         set(v) { sp.edit().putInt(K_ROTATE, v).apply() }
+
+    /** Séries tiradas do Continuar assistindo (segurar OK no cartão), como "app|título". */
+    var hiddenShows: Set<String>
+        get() = HiddenShows.parse(string(K_HIDDEN_SHOWS))
+        set(v) { sp.edit().putString(K_HIDDEN_SHOWS, HiddenShows.format(v)).apply() }
 
     /** Minutos sem tecla até o descanso de tela (0 = desligado). */
     var screensaverMinutes: Int
@@ -79,6 +85,7 @@ class Prefs(ctx: Context) {
     private companion object {
         val LOCK = Any()
         const val K_DOCK = "dock"
+        const val K_HIDDEN_SHOWS = "hidden_shows"
         const val K_WALLPAPER = "wallpaper"
         const val K_ROTATE = "wallpaper_rotate_minutes"
         const val K_SCREENSAVER = "screensaver_minutes"

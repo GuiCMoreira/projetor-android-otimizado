@@ -36,6 +36,7 @@ import br.gui.inicio.core.WakeKey
 import br.gui.inicio.core.WatchNextItem
 import br.gui.inicio.core.WatchNextList
 import br.gui.inicio.core.WeatherSchedule
+import br.gui.inicio.data.PlayedStore
 import br.gui.inicio.data.WatchNextRepository
 import br.gui.inicio.data.WeatherRepository
 import br.gui.inicio.settings.CityActivity
@@ -98,6 +99,8 @@ class HomeActivity : Activity() {
     private val startScreensaver = Runnable { enterScreensaver() }
     private var weatherLoading = false
     private var watchLoading = false
+    /** Algo novo foi anotado durante uma leitura: lê de novo ao terminar, senão a mudança se perderia. */
+    private var watchPending = false
     private var watchCards: List<WatchNextCard> = emptyList()
     private var postersLoading = false
     private val posterFailedAt = java.util.concurrent.ConcurrentHashMap<String, Long>()
@@ -220,6 +223,7 @@ class HomeActivity : Activity() {
         refreshApps()
         showWeather()
         refreshWatchNext()
+        PlayedStore.onChange = { if (visible) refreshWatchNext() }
         askTvListingsOnce()
         scheduleScreensaver()
         if (returnFocusToDock) {
@@ -230,6 +234,7 @@ class HomeActivity : Activity() {
 
     override fun onStop() {
         visible = false
+        PlayedStore.onChange = null
         unregisterReceiver(timeReceiver)
         unregisterReceiver(packageReceiver)
         status.stop()
@@ -516,7 +521,10 @@ class HomeActivity : Activity() {
 
     /** Lê a lista "Ver a seguir" e as capas fora da tela; a fileira só aparece se houver algo. */
     private fun refreshWatchNext() {
-        if (watchLoading) return
+        if (watchLoading) {
+            watchPending = true
+            return
+        }
         watchLoading = true
         // Capa decodificada já no tamanho do cartão em foco (12% maior), para não ficar borrada ao crescer.
         val w = Theme.si(WatchNextRow.CARD_W * WatchNextRow.FOCUS_SCALE)
@@ -540,7 +548,9 @@ class HomeActivity : Activity() {
                         progress = WatchNextList.progress(item),
                         poster = poster,
                         badge = badges.getOrPut(item.pkg) { watchNext.badge(item.pkg, badgeSize) },
-                    ) { watchNext.open(item) }
+                        onOpen = { watchNext.open(item) },
+                        onMenu = { anchor -> showWatchMenu(item, anchor) },
+                    )
                 }.also {
                     Log.i(TAG, "Continuar assistindo: ${it.size} itens em ${System.currentTimeMillis() - started} ms, ${missing.size} capas a baixar")
                     runOnUiThread { downloadPosters(missing, w, h) }
@@ -552,8 +562,24 @@ class HomeActivity : Activity() {
                     watchCards = cards
                     watchRow.setItems(cards)
                 }
+                if (watchPending) {
+                    watchPending = false
+                    if (!isDestroyed && visible) refreshWatchNext()
+                }
             }
         }
+    }
+
+    /** Segurar OK num cartão: abrir ou tirar a série da fileira (os apps não dizem de qual perfil ela é). */
+    private fun showWatchMenu(item: WatchNextItem, anchor: View) {
+        val menu = MenuPanel(this, item.title, listOf(
+            MenuEntry("Abrir") { watchNext.open(item) },
+            MenuEntry("Remover do Continuar assistindo") {
+                watchNext.hide(item)
+                refreshWatchNext()
+            },
+        )) { panels.close() }
+        panels.show(menu, PanelHost.centered(), anchor, locked())
     }
 
     /**

@@ -72,7 +72,7 @@ class V12Test {
 
     /** Cabem 4 cartões inteiros na largura da tela; um 5º sairia cortado e o foco iria para fora da tela. */
     @Test fun mostRecentFirstAndCappedAtFour() {
-        val items = (1..9).map { item("S$it", engaged = it.toLong()) }
+        val items = (1..9).map { item("S$it", engaged = it.toLong(), pkg = "app$it") }
         val picked = WatchNextList.pick(items) { true }
         assertEquals(listOf("S9", "S8", "S7", "S6"), picked.map { it.title })
     }

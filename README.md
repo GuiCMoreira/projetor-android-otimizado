@@ -310,7 +310,7 @@ menu lateral e macOS. A escolhida foi a do macOS. A especificação de cada vers
 | **Calendário** | Mês inteiro na barra, como no macOS |
 | **Clima** | Open-Meteo, sem conta e sem chave. Cidade detectada pela internet na primeira vez ou escolhida numa busca |
 | **Papel de parede** | Degradês próprios ou fotos mandadas do computador, com troca automática a cada 1, 3, 6 horas ou 1 dia |
-| **Continuar assistindo** | Lê a lista "Ver a seguir" que Pluto TV, Crunchyroll e YouTube publicam no Android TV. OK abre direto no episódio, no ponto em que parou |
+| **Continuar assistindo** | Junta a lista "Ver a seguir" do Android (neste projetor só a Pluto e o Crunchyroll publicam) com o que o próprio Início anota enquanto YouTube, Netflix e Spotify tocam, pela sessão de mídia (precisa do acesso a notificações, ver o CHANGELOG da 1.5). No máximo 2 cartões por app e 1 de música; episódio terminado sai sozinho; segurar OK tira uma série de vez. OK abre direto no episódio quando o app informa um link, senão abre o app |
 | **Descanso de tela** | No estilo da tela de bloqueio do macOS: data e hora grandes, widgets de clima e do último episódio, fotos com zoom lento desenhado 20 vezes por segundo (o olho não vê diferença, e o processador trabalha uns 30% menos) |
 | **Ícones** | Ícones antigos (logo sobre fundo branco) passam a preencher o quadrado com a própria cor, como no iPhone |
 | **Mouse aéreo** | O item sob o ponteiro ganha o foco, com a lupa do Dock, como passar o mouse no Mac. O tremor da mão parada não rouba o foco de quem usa as setas, e a roda rola as fileiras |

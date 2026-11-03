@@ -30,6 +30,7 @@ done
 # $A pm disable-user --user 0 com.android.docks   # estava desativado de fábrica
 
 # 4. Remover o launcher Início (o Android volta para a tela do fabricante)
+$A cmd notification disallow_listener br.gui.inicio/br.gui.inicio.data.PlayingListener || true
 adb -s "$DEV" uninstall br.gui.inicio || true
 
 # 5. Reativar o launcher do fabricante e devolver a tela padrão a ele

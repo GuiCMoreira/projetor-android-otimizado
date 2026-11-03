@@ -10,6 +10,8 @@ import android.net.Uri
 import android.util.Log
 import br.gui.inicio.core.EpisodeLink
 import br.gui.inicio.core.Guard
+import br.gui.inicio.core.HiddenShows
+import br.gui.inicio.core.PlayedLog
 import br.gui.inicio.core.PosterCache
 import br.gui.inicio.core.WatchNextItem
 import br.gui.inicio.core.WatchNextList
@@ -21,12 +23,13 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * Lista "Ver a seguir" do Android TV: cada app de streaming (Pluto TV, Crunchyroll, YouTube) publica o que
- * a pessoa estava assistindo, e a tela inicial só lê. Nada roda em segundo plano: a leitura acontece quando
- * a tela inicial aparece.
+ * Lista "Ver a seguir" do Android TV mais o que a tela anotou ao tocar ([PlayedStore]). Neste projetor só a Pluto
+ * publica na lista (conferido no banco em 03/11/2026); YouTube, Netflix e Crunchyroll entram pelo [PlayingListener].
+ * A leitura acontece quando a tela inicial aparece e quando algo novo é anotado.
  */
 class WatchNextRepository(private val ctx: Context, private val loader: WallpaperLoader) {
     private val pm = ctx.packageManager
+    private val prefs = Prefs(ctx)
 
     fun items(): List<WatchNextItem> = Guard.run({ emptyList() }) {
         val all = ArrayList<WatchNextItem>()
@@ -47,7 +50,10 @@ class WatchNextRepository(private val ctx: Context, private val loader: Wallpape
                 )
             }
         }
-        WatchNextList.pick(all, ::isOpenable)
+        // Os apps que publicam na lista (a Pluto) ficam com ela; dos outros vem o que a tela anotou ao tocar.
+        val publishers = all.map { it.pkg }.toSet()
+        val played = PlayedLog.visible(PlayedStore.load(ctx), System.currentTimeMillis(), publishers).map(PlayedLog::toWatchNext)
+        WatchNextList.pick(HiddenShows.filter(all + played, prefs.hiddenShows), ::isOpenable)
     }
 
     fun appName(pkg: String): String = Guard.run({ pkg }) { pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString() }
@@ -95,6 +101,11 @@ class WatchNextRepository(private val ctx: Context, private val loader: Wallpape
 
     /** Selo do app de origem no canto do cartão. */
     fun badge(pkg: String, size: Int): Bitmap? = Guard.run({ null }) { IconFactory.app(pm.getApplicationIcon(pkg), size, pkg) }
+
+    /** Tira a série do Continuar assistindo de vez (segurar OK no cartão). */
+    fun hide(item: WatchNextItem) {
+        prefs.hiddenShows = HiddenShows.add(prefs.hiddenShows, HiddenShows.key(item))
+    }
 
     /** Abre direto no episódio, no ponto em que parou; se o app não aceitar, abre o app. */
     fun open(item: WatchNextItem): Boolean {
