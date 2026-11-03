@@ -35,6 +35,7 @@ projetores e TVs Android genéricos com menu próprio do fabricante.
 - [Passo 5 · O launcher próprio](#passo-5--o-launcher-próprio)
 - [Passo 6 · Tornar o launcher a tela padrão (a parte mais difícil)](#passo-6--tornar-o-launcher-a-tela-padrão-a-parte-mais-difícil)
 - [Passo 7 · Pluto TV travando](#passo-7--pluto-tv-travando)
+- [Bônus · A TV da avó: o mesmo método numa TCL, com uma tela para pessoa idosa](#bônus--a-tv-da-avó-o-mesmo-método-numa-tcl-com-uma-tela-para-pessoa-idosa)
 - [Diário de bordo: tudo que deu errado](#diário-de-bordo-tudo-que-deu-errado)
 - [Adaptar para o seu aparelho](#adaptar-para-o-seu-aparelho)
 - [Compilar e instalar o launcher](#compilar-e-instalar-o-launcher)
@@ -377,6 +378,80 @@ navegação, sim. A 5.65 pede uma conta gratuita da Pluto. A Play Store pode atu
 sozinha de volta para a 17.x; [scripts/trocar-pluto.sh](scripts/trocar-pluto.sh) troca entre as
 duas. **Não incluí os APKs da Pluto no repositório**: baixe de uma fonte que publica a assinatura
 (eu usei o APKMirror) e confira antes de instalar.
+
+---
+
+## Bônus · A TV da avó: o mesmo método numa TCL, com uma tela para pessoa idosa
+
+Depois do projetor, veio a TV da minha avó: uma TCL com Android TV 11 que ela tinha parado de usar porque
+travava demais. Mesmo método (diagnóstico só de leitura, limpeza reversível, launcher próprio), outro objetivo: não
+um macOS na sala, e sim **a tela mais simples possível para uma pessoa idosa**, que só usa setas, OK, Voltar e
+volume. Tudo está em [`tv-tcl/`](tv-tcl).
+
+| Antes: tela do Google | Depois: a tela nova |
+|---|---|
+| ![Tela inicial do Google na TCL: banner de propaganda, cinco abas e fileiras de filmes](docs/capturas/tv-antes-google.webp) | ![Tela nova: saudação, data, relógio, clima e três botões grandes (Globoplay, Pluto TV e YouTube)](docs/capturas/tv-depois-inicio.webp) |
+
+<p align="center">
+  <img src="docs/capturas/tv-todos-os-apps.webp" width="640" alt="Todos os apps: botões grandes; os fixos na tela inicial têm a etiqueta Na tela inicial">
+</p>
+
+**O aparelho:** TCL placa C06, Android TV 11 "versão de usuário" (sem root), MediaTek MT5867 de 32 bits, 940 MB de
+memória, interface em 1280x720 e armazenamento 80% cheio.
+
+| | De fábrica | Depois |
+|---|---|---|
+| Memória livre (reiniciada e parada 2 min) | 297 MB | **444 MB** |
+| Tela inicial | Google: 157 MB, banner de propaganda, 5 abas | **22 MB**, 3 botões grandes |
+| Armazenamento livre | 515 MB | 1,1 GB |
+| Sistema | julho de 2022 | novembro de 2025 (atualização oficial da TCL) |
+
+**A tela nova** ([`tv-tcl/launcher`](tv-tcl/launcher), Kotlin sem bibliotecas, como o Início):
+
+- saudação que muda com a hora ("Bom dia", "Boa tarde", "Boa noite", com o nome da pessoa, configurável em
+  `strings.xml`), data por extenso, relógio grande e clima;
+- de 1 a 6 apps em botões grandes: até 4 numa fileira, 5 ou 6 em duas fileiras de 3; foco com borda branca grossa;
+- "Todos os apps" embaixo: OK abre; **segurar OK** fixa ou tira da tela inicial. É por ali que quem cuida da TV
+  escolhe o que a pessoa vê;
+- feita para quem se confunde: o segundo OK de um aperto duplo é ignorado (abria as Configurações, que vêm
+  selecionadas primeiro), qualquer seta devolve o foco se ele sumir, e as peças do fabricante que precisam ficar
+  no sistema somem da lista;
+- a mesma tela de emergência do Início, para o caso de ela cair 3 vezes seguidas.
+
+**A limpeza** ([`tv-tcl/ALTERACOES.md`](tv-tcl/ALTERACOES.md), cada mudança com o comando para desfazer, e
+[`tv-tcl/scripts/reverter.sh`](tv-tcl/scripts/reverter.sh) para desfazer tudo): 18 pacotes desativados, entre eles
+Chromecast, busca por voz, recomendações, Alexa e extras da TCL; tela do Google desativada; Play Store sem
+atualização automática. O [`desativar.sh`](tv-tcl/scripts/desativar.sh) da TV recusa sozinho o que derrubaria a
+imagem, o controle ou a tela inicial.
+
+**Para quem estiver com ela:** [`tv-tcl/INSTRUCOES.md`](tv-tcl/INSTRUCOES.md), uma folha curta (ligar, assistir, o
+que fazer se travar) e uma parte técnica para quem cuida.
+
+<details>
+<summary><strong>O que só a TCL ensinou</strong></summary>
+
+<br>
+
+- **A Netflix de TV fica pré-carregada:** 114 MB ocupados sem ninguém abrir. Não precisou desinstalar:
+  `cmd appops set com.netflix.ninja RUN_ANY_IN_BACKGROUND ignore` mais `cmd appops write-settings`. Ela continua
+  abrindo em uns 2 s quando escolhida e não volta sozinha depois de reiniciar.
+- **A Play Store troca a versão leve pela pesada.** A Pluto TV 5.65 (a mesma do Passo 7) virou 17.3 minutos depois
+  do login da conta Google, antes de eu desligar a atualização automática. Desligue antes de instalar.
+- **Remover a atualização de um app do sistema reativa o app.** `pm uninstall-system-updates` libera espaço, mas
+  devolve o app ao estado de fábrica, ligado. Desative de novo logo depois.
+- **O atualizador da TCL religa a Alexa a cada reinício** (`com.tcl.ttvs`, serviço `OverSeasAppShow`). Ela não fica
+  rodando nem aparece na tela; deixei assim em vez de brigar com o atualizador.
+- **Os apps da TCL "têm" permissão de entrada de vídeo sem usar:** rodam com a identidade do sistema e herdam a
+  permissão. O `desativar.sh` olha só as permissões que o app pede de verdade.
+- **O `screencap` da TCL escreve avisos antes da imagem**, e o PNG sai corrompido. Salve no aparelho
+  (`screencap -p /sdcard/t.png`) e copie com `adb pull`.
+- **A atualização do sistema precisa de espaço** (801 MB, com 738 livres). Limpar os dados da tela do Google e as
+  atualizações dos apps já desativados abriu a folga.
+- **Teste por ADB engana em dois pontos.** Cada `adb shell input keyevent` leva quase 1 s, então dois OKs em comandos
+  separados não simulam um aperto duplo (mande os dois num comando só). E conferir a tela antes de cada tecla: num
+  teste, as teclas caíram dentro das Configurações.
+
+</details>
 
 ---
 

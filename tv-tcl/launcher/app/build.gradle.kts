@@ -1,0 +1,57 @@
+import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace = "br.gui.tvavo"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "br.gui.tvavo"
+        minSdk = 30
+        targetSdk = 34
+        versionCode = 5
+        versionName = "1.4"
+    }
+
+    signingConfigs {
+        create("release") {
+            val file = rootProject.file("keystore.properties")
+            if (file.exists()) {
+                val p = Properties().apply { file.inputStream().use { load(it) } }
+                storeFile = rootProject.file(p.getProperty("storeFile"))
+                storePassword = p.getProperty("storePassword")
+                keyAlias = p.getProperty("keyAlias")
+                keyPassword = p.getProperty("keyPassword")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+kotlin {
+    compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+}
+
+dependencies {
+    testImplementation("junit:junit:4.13.2")
+    // org.json já vem no Android; nos testes da JVM é preciso a implementação de verdade.
+    testImplementation("org.json:json:20240303")
+}
