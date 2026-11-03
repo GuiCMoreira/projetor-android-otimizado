@@ -1,5 +1,8 @@
 # Changelog
 
+## Início 1.5.1 (03/11/2026)
+- Ícone do S0undTV (cliente de Twitch) com o "S" menor: o desenho ia de borda a borda do quadrado.
+
 ## Início 1.5 (03/11/2026)
 - Continuar assistindo com YouTube, Netflix e Spotify. Neste projetor esses apps não publicam na lista "Ver a seguir" do Android (conferido no banco do sistema: só a Pluto e, depois do login, o Crunchyroll). O Início passa a anotar o que toca, pelo que cada app informa ao sistema enquanto toca (a mesma sessão de mídia que o controle usa): título, segunda linha (canal, artista, "P1:E1 - Capítulo 1"), imagem e ponto em que parou. Conta só depois de 30 s tocando, para prévias e trailers não virarem cartão. Precisa do acesso a notificações (`cmd notification allow_listener br.gui.inicio/br.gui.inicio.data.PlayingListener`); o filtro do manifesto não deixa chegar notificação nenhuma. Medido: 63 a 64 MB contra 55 a 60 MB da 1.4.
 - No máximo 2 cartões por app; música fica com 1, o da última que tocou, sem barra de progresso nem "faltam X min".
