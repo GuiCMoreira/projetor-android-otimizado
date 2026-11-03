@@ -36,6 +36,7 @@ projetores e TVs Android genéricos com menu próprio do fabricante.
 - [Passo 6 · Tornar o launcher a tela padrão (a parte mais difícil)](#passo-6--tornar-o-launcher-a-tela-padrão-a-parte-mais-difícil)
 - [Passo 7 · Pluto TV travando](#passo-7--pluto-tv-travando)
 - [Bônus · A TV da avó: o mesmo método numa TCL, com uma tela para pessoa idosa](#bônus--a-tv-da-avó-o-mesmo-método-numa-tcl-com-uma-tela-para-pessoa-idosa)
+- [Bônus 2 · A TV da mãe: tela de smart TV completa na mesma TCL](#bônus-2--a-tv-da-mãe-tela-de-smart-tv-completa-na-mesma-tcl)
 - [Diário de bordo: tudo que deu errado](#diário-de-bordo-tudo-que-deu-errado)
 - [Adaptar para o seu aparelho](#adaptar-para-o-seu-aparelho)
 - [Compilar e instalar o launcher](#compilar-e-instalar-o-launcher)
@@ -450,6 +451,59 @@ que fazer se travar) e uma parte técnica para quem cuida.
 - **Teste por ADB engana em dois pontos.** Cada `adb shell input keyevent` leva quase 1 s, então dois OKs em comandos
   separados não simulam um aperto duplo (mande os dois num comando só). E conferir a tela antes de cada tecla: num
   teste, as teclas caíram dentro das Configurações.
+
+</details>
+
+## Bônus 2 · A TV da mãe: tela de smart TV completa na mesma TCL
+
+Mesmo modelo da TV da avó, outra pessoa: minha mãe usa bem o sistema do Google, o problema era a lentidão. Aqui a
+tela não é a mais simples possível, e sim **uma tela de smart TV completa** (no jeito das LG e Samsung), leve.
+Tudo está em [`tv-tcl-mae/`](tv-tcl-mae).
+
+| Antes: tela do Google | Depois: a tela nova |
+|---|---|
+| ![Tela inicial do Google na TCL: destaque de propaganda do Prime Video, apps favoritos e fileiras de filmes](docs/capturas/tv-mae-antes-google.webp) | ![Tela nova: foto de fundo, saudação, relógio, clima, quatro atalhos, Continuar assistindo e faixa de apps](docs/capturas/tv-mae-depois-inicio.webp) |
+
+| | De fábrica | Depois |
+|---|---|---|
+| Memória livre (reiniciada e parada 2 min) | 300 MB | **440 MB** |
+| Tela inicial | Google: 163 MB | **33 MB** (com a foto de fundo) |
+
+**A tela nova** ([`tv-tcl-mae/launcher`](tv-tcl-mae/launcher), Kotlin sem bibliotecas):
+
+- foto de fundo que troca de hora em hora. As fotos não vêm no app: ficam numa pasta do aparelho, mandadas com
+  [`enviar-fotos.sh`](tv-tcl-mae/scripts/enviar-fotos.sh), já no tamanho da tela (1280x720) e em JPEG qualidade 95;
+- saudação com o nome (configurável em `strings.xml`), relógio, data e clima;
+- 4 atalhos no canto: Entrada (abre o painel de entradas da própria TCL), Wi-Fi, Bluetooth e Ajustes;
+- **Continuar assistindo** com até 4 cartões, no máximo 2 por app, com capa, progresso e "faltam X min";
+- faixa de até 8 apps e "Todos os apps", onde **segurar OK** fixa ou tira da faixa.
+
+**A limpeza** ([`tv-tcl-mae/ALTERACOES.md`](tv-tcl-mae/ALTERACOES.md), cada mudança com o comando para desfazer, e
+[`reverter.sh`](tv-tcl-mae/scripts/reverter.sh) para desfazer tudo): Chromecast, busca por voz, descanso de tela do
+Google e extras da TCL desativados; tela do Google desativada; Netflix sem rodar em segundo plano; apps que ela não
+usava desinstalados. A Play Store ficou com atualização automática de propósito: aqui não há versão leve a proteger.
+
+<details>
+<summary><strong>O que o Continuar assistindo ensinou</strong></summary>
+
+<br>
+
+A fileira lê a lista "Ver a seguir" do Android, que cada app de streaming preenche. Os dados que chegam enganam:
+
+- **A Globoplay carimba a lista inteira com a hora em que sincroniza**, não com a hora em que algo foi assistido, e
+  põe prévias com o ponto zerado. A tela só mostra o que tem progresso ou o que foi aberto por ela.
+- **O YouTube não atualiza a hora nem o ponto de um vídeo revisto.** A tela anota a hora quando um cartão é aberto e,
+  para o que é escolhido dentro do app, lê o título da sessão de mídia (a mesma que o controle de mídia usa). Isso
+  exige o acesso a notificações (`cmd notification allow_listener`), que custou uns 10 MB: no Android 11 não há
+  filtro para não receber as notificações.
+- **A Netflix 13.2 não grava nada na lista desta TV**, nem com o segundo plano liberado e o sinal
+  `INITIALIZE_PROGRAMS` enviado à mão.
+- **A TCL bloqueia serviços de apps comuns** (`TclAppBoot`: "callee_does't_have_OP_AUTO_START_permission"). Libera
+  com `cmd appops set <pacote> APP_AUTO_START allow` e `cmd appops write-settings`, e vale depois de reiniciar.
+- **O `adb shell` não lê essa lista** ("No result found"): para ver o que cada app publica, só registrando de dentro
+  de um app com a permissão.
+- **Fotos de fundo em JPEG qualidade 75 mostram blocos** em céus e degradês escuros. Mesmo na tela de 1280x720 vale
+  gerar em qualidade 95 sem subamostragem de cor; o arquivo continua pequeno (80 a 320 KB).
 
 </details>
 
